@@ -1,5 +1,4 @@
 
-[![Deploy Dev](https://github.com/ccarrylab/SuperBowlEdge-Chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
     [![CodeQL](https://github.com/ccarrylab/SuperBowlEdge-Chaos/workflows/CodeQL/badge.svg?branch=main)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/codeql-analysis.yml)
 [![Issues](https://img.shields.io/github/issues/ccarrylab/SuperBowlEdge-Chaos)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/issues)
 
@@ -9,7 +8,7 @@
 
 ### Production-Grade Infrastructure at Super Bowl Scale
 
-[![Security Checks](https://img.shields.io/github/actions/workflow/status/ccarrylab/SuperBowlEdge-Chaos/security.yml?label=Security%20Scan&style=for-the-badge&logo=github)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
+  [![CI](https://img.shields.io/github/actions/workflow-status/ccarrylab/SuperBowlEdge-Chaos/.github/workflows/deploy.yml?label=CI)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-chaos.ccarrylab.com-blue?style=for-the-badge&logo=amazon-aws)](https://chaos.ccarrylab.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
