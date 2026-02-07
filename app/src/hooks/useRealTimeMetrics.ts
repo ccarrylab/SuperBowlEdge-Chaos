@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { metricsAPI } from '../lib/api';
-import type { CloudFrontMetrics, ALBMetrics, InfrastructureMetrics, ChaosMetrics } from '../lib/api';
+import type { CloudFrontMetrics, CloudFrontRegionalData, ALBMetrics, InfrastructureMetrics, ChaosMetrics } from '../lib/api';
 import { REFRESH_INTERVAL } from '../config/api';
 
 interface MetricsState {
   cloudfront: CloudFrontMetrics | null;
+  regions: CloudFrontRegionalData | null;
   alb: ALBMetrics | null;
   infrastructure: InfrastructureMetrics | null;
   chaos: ChaosMetrics | null;
@@ -16,6 +17,7 @@ interface MetricsState {
 export function useRealTimeMetrics() {
   const [metrics, setMetrics] = useState<MetricsState>({
     cloudfront: null,
+    regions: null,
     alb: null,
     infrastructure: null,
     chaos: null,
@@ -32,6 +34,7 @@ export function useRealTimeMetrics() {
       
       setMetrics({
         cloudfront: data.cloudfront,
+        regions: data.regions,
         alb: data.alb,
         infrastructure: data.infrastructure,
         chaos: data.chaos,
@@ -50,12 +53,8 @@ export function useRealTimeMetrics() {
   };
 
   useEffect(() => {
-    // Initial fetch
     fetchMetrics();
-
-    // Set up polling
     const interval = setInterval(fetchMetrics, REFRESH_INTERVAL);
-
     return () => clearInterval(interval);
   }, []);
 

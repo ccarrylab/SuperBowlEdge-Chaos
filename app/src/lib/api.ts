@@ -8,6 +8,22 @@ export interface CloudFrontMetrics {
   timestamp: string;
 }
 
+export interface RegionalMetrics {
+  region: string;
+  requests: number;
+  bandwidth: number;
+  latency: number;
+  hitRate: number;
+  timestamp: string;
+}
+
+export interface CloudFrontRegionalData {
+  regions: RegionalMetrics[];
+  totalRequests: number;
+  totalBandwidth: number;
+  timestamp: string;
+}
+
 export interface ALBMetrics {
   healthyTargets: number;
   totalTargets: number;
@@ -59,6 +75,12 @@ class MetricsAPI {
     return response.json();
   }
 
+  async fetchCloudFrontRegions(): Promise<CloudFrontRegionalData> {
+    const response = await fetch(API_ENDPOINTS.cloudfrontRegions);
+    if (!response.ok) throw new Error('Failed to fetch regional metrics');
+    return response.json();
+  }
+
   async fetchALB(): Promise<ALBMetrics> {
     const response = await fetch(API_ENDPOINTS.alb);
     if (!response.ok) throw new Error('Failed to fetch ALB metrics');
@@ -78,14 +100,15 @@ class MetricsAPI {
   }
 
   async fetchAll() {
-    const [cloudfront, alb, infrastructure, chaos] = await Promise.all([
+    const [cloudfront, regions, alb, infrastructure, chaos] = await Promise.all([
       this.fetchCloudFront(),
+      this.fetchCloudFrontRegions(),
       this.fetchALB(),
       this.fetchInfrastructure(),
       this.fetchChaos(),
     ]);
 
-    return { cloudfront, alb, infrastructure, chaos };
+    return { cloudfront, regions, alb, infrastructure, chaos };
   }
 }
 

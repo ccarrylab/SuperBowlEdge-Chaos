@@ -1,3 +1,4 @@
+import { ParticleBackground } from './components/effects/ParticleBackground'
 import { useState, useEffect } from 'react'
 import { Sidebar } from './sections/Sidebar'
 import { Header } from './sections/Header'
@@ -8,18 +9,17 @@ import { EdgeInfrastructure } from './sections/EdgeInfrastructure'
 import { SecurityMonitor } from './sections/SecurityMonitor'
 import { LiveStream } from './sections/LiveStream'
 import { CostAnalysis } from './sections/CostAnalysis'
+import { Footer } from './components/Footer'
 
 export type ViewType = 'scoreboard' | 'cdn' | 'chaos' | 'infrastructure' | 'security' | 'stream' | 'cost'
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('scoreboard')
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Simulate real-time data updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setLastUpdate(new Date())
     }, 5000)
     return () => clearInterval(interval)
   }, [])
@@ -55,7 +55,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex field-pattern">
+    <div className="min-h-screen bg-background flex field-pattern relative">
+      <ParticleBackground />
       <Sidebar 
         currentView={currentView} 
         onViewChange={setCurrentView}
@@ -64,10 +65,11 @@ function App() {
       />
       
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
-        <Header lastUpdate={lastUpdate} />
+        <Header />
         
         <main className="flex-1 p-6 overflow-auto">
           {renderContent()}
+          <Footer />
         </main>
       </div>
     </div>

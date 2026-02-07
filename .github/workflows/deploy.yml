@@ -1,0 +1,64 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+permissions:
+  id-token: write   # Required for OIDC
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::089719647189:role/GitHubActionsDeployRole
+          role-session-name: GitHubActions-Deploy
+          aws-region: us-east-1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+      
+      - name: Build React app
+        working-directory: app
+        run: npm run build
+      
+      - name: Deploy to S3
+        run: |
+          aws s3 sync app/dist/ s3://superbowl-edge-${{ inputs.environment }}-content-089719647189/ --delete
+      
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E3EHW9FZ4D82AY \
+            --paths "/*"
+      
+      - name: Deployment Summary
+        run: |
+          echo "✅ Deployed to ${{ inputs.environment }} environment"
+          echo "🌐 URL: https://chaos.ccarrylab.com"
