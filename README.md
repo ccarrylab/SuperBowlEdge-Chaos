@@ -308,9 +308,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ using AWS, Terraform, and React**
 
 </div>
-
-## 🚀 Status Badges
-
-[![Deploy Dev](https://github.com/ccarrylab/superbowl-edge-chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/superbowl-edge-chaos/actions)
-[![Security](https://github.com/ccarrylab/superbowl-edge-chaos/security/badge.svg)](https://github.com/ccarrylab/superbowl-edge-chaos/security)
-[![Issues](https://img.shields.io/github/issues/ccarrylab/superbowl-edge-chaos)](https://github.com/ccarrylab/superbowl-edge-chaos/issues)
