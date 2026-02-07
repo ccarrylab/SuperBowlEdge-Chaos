@@ -177,8 +177,8 @@ terraform apply -auto-approve
 cd ../app
 npm install
 npm run build
-aws s3 sync dist/ s3://superbowl-edge-dev-content-089719647189/ --delete
-aws cloudfront create-invalidation --distribution-id E3EHW9FZ4D82AY --paths "/*"
+aws s3 sync dist/ s3://superbowl-edge-dev-content-YOUR_AWS_ACCOUNT_ID/ --delete
+aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
 
 # 4️⃣ View live at https://chaos.ccarrylab.com 🎉
 ```
