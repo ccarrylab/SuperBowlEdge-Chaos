@@ -1,0 +1,18 @@
+title = "SuperBowl Edge Chaos - Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist for false positives"
+paths = [
+  '''node_modules/''',
+  '''\.terraform/''',
+  '''dist/''',
+]
+
+# Example patterns to ignore (customize as needed)
+regexes = [
+  '''example\.com''',
+  '''localhost''',
+]

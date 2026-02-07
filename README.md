@@ -17,3 +17,29 @@ Production-grade chaos engineering with real-time AWS metrics.
 
 ## Author
 Cohen Carryl - Senior DevOps Engineer
+
+## Security Posture
+
+[![Security Checks](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/security.yml/badge.svg)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/security.yml)
+
+### Automated Security Scanning
+
+**Tiered Security Approach:**
+
+🔴 **CRITICAL** (Blocking)
+- Secret scanning (Gitleaks)
+- Critical CVE dependencies
+
+🟠 **HIGH** (Blocking)
+- Infrastructure misconfigurations (Checkov, tfsec)
+- High severity vulnerabilities (Trivy)
+
+🟡 **MEDIUM** (Advisory)
+- SAST code analysis (Semgrep)
+- Python security (Bandit)
+
+🟢 **LOW** (Informational)
+- Full dependency audit
+- Continuous monitoring
+
+See [SECURITY.md](SECURITY.md) for complete security policy.

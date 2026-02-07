@@ -11,10 +11,29 @@ on:
 permissions:
   contents: read
   security-events: write
+  pull-requests: write
 
 jobs:
-  dependency-scan:
-    name: Dependency Security Scan
+  # CRITICAL: Must pass - blocks deployment
+  secret-scan:
+    name: Secret Scanning (CRITICAL)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # FAIL HARD: Never allow secrets in code
+
+  # CRITICAL: Must pass - blocks deployment
+  dependency-scan-critical:
+    name: Dependency Scan - Critical CVEs
     runs-on: ubuntu-latest
     
     steps:
@@ -30,61 +49,59 @@ jobs:
         working-directory: app
         run: npm ci
       
-      - name: Run npm audit
+      - name: Run npm audit (CRITICAL only)
         working-directory: app
-        run: npm audit --audit-level=moderate || true
+        run: npm audit --audit-level=critical
+        # FAIL HARD: Block critical vulnerabilities
       
-      - name: Dependency Review
+      - name: Dependency Review (PR only)
         uses: actions/dependency-review-action@v4
         if: github.event_name == 'pull_request'
-        continue-on-error: true
-
-  secret-scan:
-    name: Secret Scanning
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      
-      - name: Gitleaks Secret Scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fail-on-severity: critical
 
+  # HIGH: Should pass - warns but doesn't block
   infrastructure-security:
-    name: Infrastructure Security
+    name: Infrastructure Security (HIGH)
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Run Checkov (Terraform Security)
+      - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
           directory: infrastructure/
           framework: terraform
-          soft_fail: true
-          quiet: true
+          soft_fail: false
+          quiet: false
+          output_format: sarif
+          output_file_path: checkov-results.sarif
       
-      - name: tfsec Terraform Security
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+      
+      - name: tfsec Scan
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infrastructure/
-          soft_fail: true
+          soft_fail: false
+          # FAIL: Block infrastructure misconfigurations
 
+  # HIGH: Should pass - warns but doesn't block  
   trivy-scan:
-    name: Trivy Vulnerability Scan
+    name: Vulnerability Scanning (HIGH)
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Run Trivy filesystem scan
+      - name: Run Trivy Scanner
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
@@ -92,16 +109,18 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+          exit-code: '1'
+          # FAIL: Block on CRITICAL and HIGH vulnerabilities
       
-      - name: Upload Trivy results
+      - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
 
+  # MEDIUM: Advisory only - reports but doesn't block
   sast-scan:
-    name: Static Analysis (SAST)
+    name: SAST Analysis (MEDIUM)
     runs-on: ubuntu-latest
     
     steps:
@@ -117,12 +136,12 @@ jobs:
             p/owasp-top-ten
             p/react
             p/typescript
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
         continue-on-error: true
+        # WARN: Report issues but don't block
 
+  # MEDIUM: Advisory only
   python-security:
-    name: Python Security (Lambda)
+    name: Python/Lambda Security (MEDIUM)
     runs-on: ubuntu-latest
     
     steps:
@@ -135,35 +154,77 @@ jobs:
           python-version: '3.11'
       
       - name: Install security tools
-        run: |
-          pip install bandit safety
+        run: pip install bandit safety
       
-      - name: Run Bandit (Python SAST)
+      - name: Bandit SAST
         run: |
-          bandit -r infrastructure/lambda/ -f json -o bandit-report.json || true
-          cat bandit-report.json
+          bandit -r infrastructure/lambda/ -ll -f sarif -o bandit-results.sarif || true
+          bandit -r infrastructure/lambda/ -ll || true
+        continue-on-error: true
+        # WARN: Report high/medium issues
       
-      - name: Check for known vulnerabilities
+      - name: Safety Check
         run: |
           echo "boto3" > requirements.txt
-          safety check --file requirements.txt --json || true
+          safety check --file requirements.txt --bare || true
+        continue-on-error: true
 
-  security-summary:
-    name: Security Summary
+  # LOW: Informational only
+  dependency-scan-all:
+    name: Full Dependency Audit (INFO)
     runs-on: ubuntu-latest
-    needs: [dependency-scan, secret-scan, infrastructure-security, trivy-scan, sast-scan, python-security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+      
+      - name: Full npm audit
+        working-directory: app
+        run: npm audit --audit-level=low || true
+        continue-on-error: true
+        # INFO: Report all issues for visibility
+
+  # Quality Gate: All critical checks must pass
+  security-gate:
+    name: Security Quality Gate
+    runs-on: ubuntu-latest
+    needs: [secret-scan, dependency-scan-critical, infrastructure-security, trivy-scan]
     if: always()
     
     steps:
-      - name: Security Check Summary
+      - name: Check Security Gate Status
         run: |
-          echo "## 🔒 Security Scan Complete"
+          echo "## 🔒 Security Quality Gate"
           echo ""
-          echo "✅ Dependency scanning completed"
-          echo "✅ Secret scanning completed"
-          echo "✅ Infrastructure security checked"
-          echo "✅ Vulnerability scanning completed"
-          echo "✅ SAST analysis completed"
-          echo "✅ Python security validated"
+          if [ "${{ needs.secret-scan.result }}" != "success" ]; then
+            echo "❌ CRITICAL: Secrets detected in code!"
+            exit 1
+          fi
+          if [ "${{ needs.dependency-scan-critical.result }}" != "success" ]; then
+            echo "❌ CRITICAL: Critical vulnerabilities in dependencies!"
+            exit 1
+          fi
+          if [ "${{ needs.infrastructure-security.result }}" != "success" ]; then
+            echo "⚠️  HIGH: Infrastructure security issues detected!"
+            exit 1
+          fi
+          if [ "${{ needs.trivy-scan.result }}" != "success" ]; then
+            echo "⚠️  HIGH: Critical/High vulnerabilities detected!"
+            exit 1
+          fi
+          echo "✅ All critical security checks passed!"
           echo ""
-          echo "All security checks have been executed successfully!"
+          echo "Security Levels:"
+          echo "- 🔴 CRITICAL: ${{ needs.secret-scan.result }} | ${{ needs.dependency-scan-critical.result }}"
+          echo "- 🟠 HIGH: ${{ needs.infrastructure-security.result }} | ${{ needs.trivy-scan.result }}"
+          echo "- 🟡 MEDIUM: Advisory (non-blocking)"
+          echo "- 🟢 LOW: Informational (non-blocking)"
