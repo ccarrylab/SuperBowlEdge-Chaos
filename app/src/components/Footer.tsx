@@ -1,6 +1,7 @@
-import { Github, Linkedin, Cloud } from 'lucide-react';
+import { Linkedin, Cloud } from 'lucide-react';
 
 export function Footer() {
+  
   return (
     <footer className="bg-gray-900 border-t border-gray-800 mt-12">
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -21,20 +22,10 @@ export function Footer() {
                 href="https://www.linkedin.com/in/cohen-h-carryl-3538b614/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                title="LinkedIn"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
               >
                 <Linkedin className="w-5 h-5" />
-              </a>
-              
-              <a
-                href="https://github.com/ccarrylab"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                title="GitHub"
-              >
-                <Github className="w-5 h-5" />
+                <span className="font-medium">Connect on LinkedIn</span>
               </a>
             </div>
           </div>
