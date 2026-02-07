@@ -1,7 +1,7 @@
 
-[![Deploy Dev](https://github.com/ccarrylab/superbowl-edge-chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/superbowl-edge-chaos/actions)
-[![Security](https://github.com/ccarrylab/superbowl-edge-chaos/security/badge.svg)](https://github.com/ccarrylab/superbowl-edge-chaos/security)
-[![Issues](https://img.shields.io/github/issues/ccarrylab/superbowl-edge-chaos)](https://github.com/ccarrylab/superbowl-edge-chaos/issues)
+[![Deploy Dev](https://github.com/ccarrylab/SuperBowlEdge-Chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
+[![Security](https://github.com/ccarrylab/SuperBowlEdge-Chaos/security/badge.svg)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/security)
+[![Issues](https://img.shields.io/github/issues/ccarrylab/SuperBowlEdge-Chaos)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/issues)
 
 <div align="center">
 
@@ -255,7 +255,7 @@ aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --path
 
 ## 📁 Project Structure
 ```
-superbowl-edge-chaos/
+SuperBowlEdge-Chaos/
 ├── 🏗️  infrastructure/          # Terraform IaC
 │   ├── main.tf                  # Core AWS resources
 │   ├── cloudfront.tf            # CDN configuration
