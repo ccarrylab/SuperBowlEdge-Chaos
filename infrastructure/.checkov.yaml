@@ -15,6 +15,7 @@ skip-check:
   - CKV_AWS_378  # ALB HTTP protocol: HTTP listener redirects to HTTPS
   - CKV2_AWS_20  # ALB HTTP redirect: Configured in listener rules
   - CKV_AWS_131  # Drop headers: Configured in Terraform
+  - CKV_AWS_103  # ALB TLS 1.2: HTTP listener redirects to HTTPS (no TLS on HTTP)
   
   # === IAM Skips ===
   - CKV_AWS_290  # Write constraints: FIS/Canary need CloudWatch access
