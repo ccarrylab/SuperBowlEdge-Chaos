@@ -1,6 +1,6 @@
 
 [![Deploy Dev](https://github.com/ccarrylab/SuperBowlEdge-Chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
-  [![Security](https://github.com/ccarrylab/SuperBowlEdge-Chaos/security/badge.svg)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/security)
+    [![CodeQL](https://github.com/ccarrylab/SuperBowlEdge-Chaos/workflows/CodeQL/badge.svg?branch=main)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/codeql-analysis.yml)
 [![Issues](https://img.shields.io/github/issues/ccarrylab/SuperBowlEdge-Chaos)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/issues)
 
 <div align="center">
