@@ -1,4 +1,3 @@
-## 🚀 Status Badges
 
 [![Deploy Dev](https://github.com/ccarrylab/superbowl-edge-chaos/workflows/Deploy%20to%20AWS/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/ccarrylab/superbowl-edge-chaos/actions)
 [![Security](https://github.com/ccarrylab/superbowl-edge-chaos/security/badge.svg)](https://github.com/ccarrylab/superbowl-edge-chaos/security)
