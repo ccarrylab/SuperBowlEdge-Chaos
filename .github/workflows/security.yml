@@ -25,7 +25,7 @@ jobs:
           directory: infrastructure/
           framework: terraform
           config_file: infrastructure/.checkov.yaml
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_pat: ${{ secrets.GITHUB_TOKEN }}
           quiet: true
           compact: true
           soft_fail: false
