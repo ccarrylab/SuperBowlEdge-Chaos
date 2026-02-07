@@ -12,8 +12,6 @@
 
 [🚀 Live Demo](https://chaos.ccarrylab.com) • [📖 Documentation](https://github.com/ccarrylab/SuperBowlEdge-Chaos) • [🔒 Security](SECURITY.md)
 
-![Dashboard Preview](https://via.placeholder.com/800x400/1a1a2e/ffffff?text=Chaos+Engineering+Dashboard)
-
 </div>
 
 ---
@@ -30,26 +28,35 @@
 ---
 
 ## 🏗️ Architecture
-```mermaid
-graph TB
-    A[Internet Users] -->|HTTPS| B[CloudFront CDN]
-    B -->|TLS 1.2+| C[AWS WAF]
-    C --> D[Route53 DNS]
-    D --> E[API Gateway]
-    E --> F[Lambda Functions]
-    E --> G[Application Load Balancer]
-    G --> H[HAProxy Auto Scaling Group]
-    H --> I[Nginx Servers]
-    J[AWS FIS] -.->|Chaos Tests| H
-    K[CloudWatch] -.->|Metrics| F
-```
 
-**Key Components:**
-- 🌍 **CloudFront**: Global CDN with 450+ edge locations
-- 🛡️ **WAF**: DDoS protection and security rules
-- ⚡ **Lambda**: Real-time metrics API (5 endpoints)
-- 🔄 **Auto Scaling**: 2-4 HAProxy instances across 2 AZs
-- 💥 **FIS**: Automated chaos experiments
+<div align="center">
+
+![AWS Architecture Diagram](docs/architecture.png)
+
+### Architecture Components
+
+| Layer | Services | Description |
+|-------|----------|-------------|
+| **Edge** | CloudFront CDN, AWS WAF, Route53 | Global content delivery with DDoS protection |
+| **DNS** | Route53 | DNS routing with SSL certificate (ACM) |
+| **API** | API Gateway, Lambda | Real-time metrics API with serverless compute |
+| **Compute** | ALB, HAProxy ASG, Nginx | Load balancing and auto-scaling infrastructure |
+| **App** | S3, CloudWatch | Static content hosting and monitoring |
+| **Chaos** | AWS FIS | Fault injection for resilience testing |
+| **Observability** | CloudWatch, Lambda | Metrics collection and real-time monitoring |
+
+### Data Flow
+
+1. **Internet Users** → CloudFront (450+ global edge locations)
+2. **Edge Layer** → WAF filters malicious traffic, Route53 resolves DNS
+3. **API Gateway** → Routes to Lambda for metrics or ALB for content
+4. **Lambda Functions** → Fetch real-time CloudWatch metrics
+5. **Load Balancer** → Distributes across HAProxy Auto Scaling Group (2-4 instances)
+6. **Backend** → Nginx serves React app from S3
+7. **Chaos Testing** → FIS injects faults to validate resilience
+8. **Monitoring** → CloudWatch collects metrics from all services
+
+</div>
 
 ---
 
@@ -177,8 +184,8 @@ terraform apply -auto-approve
 cd ../app
 npm install
 npm run build
-aws s3 sync dist/ s3://superbowl-edge-dev-content-YOUR_AWS_ACCOUNT_ID/ --delete
-aws cloudfront create-invalidation --distribution-id YOUR_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+aws s3 sync dist/ s3://superbowl-edge-dev-content-YOUR_ACCOUNT_ID/ --delete
+aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
 
 # 4️⃣ View live at https://chaos.ccarrylab.com 🎉
 ```
@@ -263,6 +270,7 @@ superbowl-edge-chaos/
 ├── 🤖 .github/workflows/        # CI/CD Pipelines
 │   └── security.yml             # Security scanning
 └── 📚 docs/                     # Documentation
+    ├── architecture.png         # Architecture diagram
     ├── SECURITY.md
     └── SECURITY_IMPROVEMENTS.md
 ```
