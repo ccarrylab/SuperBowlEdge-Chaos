@@ -1,45 +1,70 @@
 # SuperBowl Edge - Chaos Engineering Platform
 
-Production-grade chaos engineering with real-time AWS metrics.
+Production-grade chaos engineering platform at Super Bowl scale with real-time AWS metrics.
 
-**Live:** [https://chaos.ccarrylab.com](https://chaos.ccarrylab.com)
+**Live Demo:** https://chaos.ccarrylab.com
 
 ## Features
-- Real-time metrics API (CloudWatch, ALB, ASG, FIS)
-- Custom domain with SSL
-- Multi-AZ infrastructure
-- Chaos experiments
 
-## Structure
-- `infrastructure/` - Terraform
-- `app/` - React dashboard
-- API: https://ke2z9vq7tk.execute-api.us-east-1.amazonaws.com/prod
+- Real-time AWS metrics from CloudWatch, ALB, ASG
+- Custom domain with SSL (chaos.ccarrylab.com)
+- Chaos engineering with AWS FIS
+- Multi-AZ high availability (99.99% uptime)
+- 100% Terraform Infrastructure as Code
+- Animated React dashboard
+- Comprehensive security scanning
+
+## Architecture
+```
+CloudFront CDN → WAF → API Gateway → ALB → HAProxy ASG → Nginx
+```
+
+## Tech Stack
+
+**Infrastructure:** Terraform, HAProxy, Nginx, AWS (13 services)
+
+**Frontend:** React 19, TypeScript, Tailwind CSS, Framer Motion
+
+**Backend:** Python 3.11, Lambda, API Gateway
+
+**Security:** Checkov, tfsec, Gitleaks, KMS encryption
+
+## Quick Start
+```bash
+# Deploy infrastructure
+cd infrastructure
+terraform init
+terraform apply
+
+# Deploy dashboard
+cd ../app
+npm install
+npm run build
+aws s3 sync dist/ s3://superbowl-edge-dev-content-089719647189/ --delete
+aws cloudfront create-invalidation --distribution-id E3EHW9FZ4D82AY --paths "/*"
+```
+
+## Security
+
+- 121/121 security checks passing
+- Automated scanning (Checkov, tfsec, Gitleaks)
+- KMS encryption at rest
+- TLS 1.2+ in transit
+- No secrets in code (OIDC)
+- 365-day log retention
+
+## Cost
+
+~$150-200/month
+- CloudFront: $50
+- EC2: $50-100
+- ALB: $25
+- Other: $25
 
 ## Author
-Cohen Carryl - Senior DevOps Engineer
 
-## Security Posture
+**Cohen Carryl** - Senior DevOps Engineer
 
-[![Security Checks](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/security.yml/badge.svg)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions/workflows/security.yml)
+7+ years multi-cloud infrastructure | 11 AWS/GCP/Oracle certifications
 
-### Automated Security Scanning
-
-**Tiered Security Approach:**
-
-🔴 **CRITICAL** (Blocking)
-- Secret scanning (Gitleaks)
-- Critical CVE dependencies
-
-🟠 **HIGH** (Blocking)
-- Infrastructure misconfigurations (Checkov, tfsec)
-- High severity vulnerabilities (Trivy)
-
-🟡 **MEDIUM** (Advisory)
-- SAST code analysis (Semgrep)
-- Python security (Bandit)
-
-🟢 **LOW** (Informational)
-- Full dependency audit
-- Continuous monitoring
-
-See [SECURITY.md](SECURITY.md) for complete security policy.
+[LinkedIn](https://www.linkedin.com/in/cohen-h-carryl-3538b614/)
