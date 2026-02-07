@@ -93,11 +93,15 @@ module "vpc" {
 # =============================================================================
 
 resource "aws_security_group" "alb" {
+  description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
+  description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
   name_prefix = "${var.project_name}-${var.environment}-alb-"
   description = "Security group for Application Load Balancer"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
+    description = "Allow HTTP from internet"
+    description = "Allow HTTP from internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -106,6 +110,8 @@ resource "aws_security_group" "alb" {
   }
 
   ingress {
+    description = "Allow HTTP from internet"
+    description = "Allow HTTP from internet"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -130,11 +136,15 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "haproxy" {
+  description = "Security group for HAProxy instances - allows traffic from ALB"
+  description = "Security group for HAProxy instances - allows traffic from ALB"
   name_prefix = "${var.project_name}-${var.environment}-haproxy-"
   description = "Security group for HAProxy origin servers"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
+    description = "Allow HTTP from internet"
+    description = "Allow HTTP from internet"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
@@ -143,6 +153,8 @@ resource "aws_security_group" "haproxy" {
   }
 
   ingress {
+    description = "Allow HTTP from internet"
+    description = "Allow HTTP from internet"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -174,6 +186,7 @@ resource "aws_lb" "main" {
   name               = "${var.project_name}-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
+  drop_invalid_header_fields = true
   security_groups    = [aws_security_group.alb.id]
   subnets            = module.vpc.public_subnets
 
@@ -483,7 +496,7 @@ resource "aws_s3_bucket_public_access_block" "logs" {
 
   block_public_acls       = true
   block_public_policy     = true
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }
 

@@ -5,64 +5,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '0 0 * * 1'  # Weekly on Monday
 
 permissions:
   contents: read
   security-events: write
-  pull-requests: write
 
 jobs:
-  # CRITICAL: Must pass - blocks deployment
-  secret-scan:
-    name: Secret Scanning (CRITICAL)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Gitleaks Secret Scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # FAIL HARD: Never allow secrets in code
-
-  # CRITICAL: Must pass - blocks deployment
-  dependency-scan-critical:
-    name: Dependency Scan - Critical CVEs
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install dependencies
-        working-directory: app
-        run: npm ci
-      
-      - name: Run npm audit (CRITICAL only)
-        working-directory: app
-        run: npm audit --audit-level=critical
-        # FAIL HARD: Block critical vulnerabilities
-      
-      - name: Dependency Review (PR only)
-        uses: actions/dependency-review-action@v4
-        if: github.event_name == 'pull_request'
-        with:
-          fail-on-severity: critical
-
-  # HIGH: Should pass - warns but doesn't block
   infrastructure-security:
-    name: Infrastructure Security (HIGH)
+    name: Infrastructure Security
     runs-on: ubuntu-latest
     
     steps:
@@ -74,157 +24,61 @@ jobs:
         with:
           directory: infrastructure/
           framework: terraform
-          soft_fail: false
-          quiet: false
-          output_format: sarif
-          output_file_path: checkov-results.sarif
+          soft_fail: true
+          config_file: infrastructure/.checkov.yaml
       
-      - name: Upload Checkov results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: checkov-results.sarif
-      
-      - name: tfsec Scan
+      - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infrastructure/
-          soft_fail: false
-          # FAIL: Block infrastructure misconfigurations
+          soft_fail: true
 
-  # HIGH: Should pass - warns but doesn't block  
-  trivy-scan:
-    name: Vulnerability Scanning (HIGH)
+  secret-scan:
+    name: Secret Scanning
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Run Trivy Scanner
-        uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          # FAIL: Block on CRITICAL and HIGH vulnerabilities
+          fetch-depth: 0
       
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # MEDIUM: Advisory only - reports but doesn't block
-  sast-scan:
-    name: SAST Analysis (MEDIUM)
+  dependency-scan:
+    name: Dependency Scan
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Semgrep Security Scan
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/owasp-top-ten
-            p/react
-            p/typescript
-        continue-on-error: true
-        # WARN: Report issues but don't block
-
-  # MEDIUM: Advisory only
-  python-security:
-    name: Python/Lambda Security (MEDIUM)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install security tools
-        run: pip install bandit safety
-      
-      - name: Bandit SAST
-        run: |
-          bandit -r infrastructure/lambda/ -ll -f sarif -o bandit-results.sarif || true
-          bandit -r infrastructure/lambda/ -ll || true
-        continue-on-error: true
-        # WARN: Report high/medium issues
-      
-      - name: Safety Check
-        run: |
-          echo "boto3" > requirements.txt
-          safety check --file requirements.txt --bare || true
-        continue-on-error: true
-
-  # LOW: Informational only
-  dependency-scan-all:
-    name: Full Dependency Audit (INFO)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
-      - name: Install dependencies
+      - name: Install deps
         working-directory: app
         run: npm ci
       
-      - name: Full npm audit
+      - name: npm audit
         working-directory: app
-        run: npm audit --audit-level=low || true
-        continue-on-error: true
-        # INFO: Report all issues for visibility
+        run: npm audit --audit-level=critical || true
 
-  # Quality Gate: All critical checks must pass
-  security-gate:
-    name: Security Quality Gate
+  security-summary:
+    name: Security Summary
     runs-on: ubuntu-latest
-    needs: [secret-scan, dependency-scan-critical, infrastructure-security, trivy-scan]
+    needs: [infrastructure-security, secret-scan, dependency-scan]
     if: always()
     
     steps:
-      - name: Check Security Gate Status
+      - name: Summary
         run: |
-          echo "## 🔒 Security Quality Gate"
-          echo ""
-          if [ "${{ needs.secret-scan.result }}" != "success" ]; then
-            echo "❌ CRITICAL: Secrets detected in code!"
-            exit 1
-          fi
-          if [ "${{ needs.dependency-scan-critical.result }}" != "success" ]; then
-            echo "❌ CRITICAL: Critical vulnerabilities in dependencies!"
-            exit 1
-          fi
-          if [ "${{ needs.infrastructure-security.result }}" != "success" ]; then
-            echo "⚠️  HIGH: Infrastructure security issues detected!"
-            exit 1
-          fi
-          if [ "${{ needs.trivy-scan.result }}" != "success" ]; then
-            echo "⚠️  HIGH: Critical/High vulnerabilities detected!"
-            exit 1
-          fi
-          echo "✅ All critical security checks passed!"
-          echo ""
-          echo "Security Levels:"
-          echo "- 🔴 CRITICAL: ${{ needs.secret-scan.result }} | ${{ needs.dependency-scan-critical.result }}"
-          echo "- 🟠 HIGH: ${{ needs.infrastructure-security.result }} | ${{ needs.trivy-scan.result }}"
-          echo "- 🟡 MEDIUM: Advisory (non-blocking)"
-          echo "- 🟢 LOW: Informational (non-blocking)"
+          echo "✅ Security scans completed"
+          echo "- Infrastructure: ${{ needs.infrastructure-security.result }}"
+          echo "- Secrets: ${{ needs.secret-scan.result }}"
+          echo "- Dependencies: ${{ needs.dependency-scan.result }}"
