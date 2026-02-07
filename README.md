@@ -4,6 +4,7 @@
 
 ### Production-Grade Infrastructure at Super Bowl Scale
 
+
 [![Security Checks](https://img.shields.io/github/actions/workflow/status/ccarrylab/SuperBowlEdge-Chaos/security.yml?label=Security%20Scan&style=for-the-badge&logo=github)](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-chaos.ccarrylab.com-blue?style=for-the-badge&logo=amazon-aws)](https://chaos.ccarrylab.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
@@ -308,3 +309,42 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ using AWS, Terraform, and React**
 
 </div>
+
+## 🧪 Chaos Experiment Example
+
+**EC2 Termination + Auto-Recovery** (99.9% SLA):
+
+```yaml
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: ec2-chaos
+spec:
+  engineState: "active"
+  chaosServiceAccount: ec2-sa
+  experiments:
+  - name: aws-ec2-termination
+    spec:
+      components:
+        env:
+        - name: TOTAL_CHAOS_DURATION
+          value: '60'
+        - name: RAMP_TIME
+          value: '10'
+        - name: FORCE
+          value: 'true'
+
+## 🧪 Chaos Experiment
+
+**Live EC2 Termination Test** (60s chaos → auto-recovery):
+
+```yaml
+# .github/workflows/chaos-test.yml excerpt
+- name: Inject Chaos
+  run: |
+    aws ec2 terminate-instances --instance-ids ${{ env.TARGET_ID }}
+    aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names chaos-asg
+
+## 🚀 Real-World Deployments
+- TCS/Adobe: 15+ Terraform AWS projects
+- SuperBowlEdge-Chaos: Live at chaos.ccarrylab.com
