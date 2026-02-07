@@ -211,3 +211,45 @@ resource "aws_iam_role_policy" "firehose" {
     ]
   })
 }
+
+# Add Log4Shell (CVE-2021-44228) protection
+resource "aws_wafv2_web_acl" "cloudfront_enhanced" {
+  name        = "${var.environment}-cloudfront-waf-enhanced"
+  description = "WAF rules for CloudFront with Log4Shell protection"
+  scope       = "CLOUDFRONT"
+
+  default_action {
+    allow {}
+  }
+
+  # Log4Shell protection
+  rule {
+    name     = "Log4ShellProtection"
+    priority = 0
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        vendor_name = "AWS"
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "Log4ShellProtection"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "CloudFrontWAFEnhanced"
+    sampled_requests_enabled   = true
+  }
+
+  tags = local.common_tags
+}
