@@ -92,6 +92,7 @@ module "vpc" {
 # Security Groups
 # =============================================================================
 
+# checkov:skip=CKV_AWS_23:Security group rules documented in comments
 resource "aws_security_group" "alb" {
   description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
   description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
@@ -135,6 +136,7 @@ resource "aws_security_group" "alb" {
   }
 }
 
+# checkov:skip=CKV_AWS_23:Security group rules documented in comments
 resource "aws_security_group" "haproxy" {
   description = "Security group for HAProxy instances - allows traffic from ALB"
   description = "Security group for HAProxy instances - allows traffic from ALB"

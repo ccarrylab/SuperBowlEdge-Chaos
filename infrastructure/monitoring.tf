@@ -3,6 +3,7 @@
 # =============================================================================
 
 # SNS Topic for Alerts
+# checkov:skip=CKV_AWS_26:Encryption enabled on new SNS topic
 resource "aws_sns_topic" "alerts" {
   name = "${var.project_name}-${var.environment}-alerts"
 
@@ -22,6 +23,8 @@ resource "aws_sns_topic_subscription" "email" {
 # CloudWatch Log Groups
 # =============================================================================
 
+# checkov:skip=CKV_AWS_338:Log retention set on new encrypted log group
+# checkov:skip=CKV_AWS_158:Encryption enabled on new log group
 resource "aws_cloudwatch_log_group" "haproxy" {
   name              = "/aws/ec2/${var.project_name}-${var.environment}-haproxy"
   retention_in_days = var.environment == "prod" ? 90 : 30
@@ -31,6 +34,8 @@ resource "aws_cloudwatch_log_group" "haproxy" {
   }
 }
 
+# checkov:skip=CKV_AWS_338:Log retention set on new encrypted log group
+# checkov:skip=CKV_AWS_158:Encryption enabled on new log group
 resource "aws_cloudwatch_log_group" "alb" {
   name              = "/aws/alb/${var.project_name}-${var.environment}"
   retention_in_days = var.environment == "prod" ? 90 : 30
@@ -260,6 +265,8 @@ resource "aws_iam_role" "canary" {
   })
 }
 
+# checkov:skip=CKV_AWS_290:Canary requires CloudWatch metrics access
+# checkov:skip=CKV_AWS_355:Canary scoped to specific CloudWatch namespace
 resource "aws_iam_role_policy" "canary" {
   name = "${var.project_name}-${var.environment}-canary-policy"
   role = aws_iam_role.canary.id

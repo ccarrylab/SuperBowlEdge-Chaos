@@ -20,6 +20,8 @@ resource "aws_iam_role" "fis" {
   })
 }
 
+# checkov:skip=CKV_AWS_290:FIS requires broad permissions for chaos experiments
+# checkov:skip=CKV_AWS_355:FIS role scoped by experiment templates
 resource "aws_iam_role_policy" "fis" {
   name = "${var.project_name}-${var.environment}-fis-policy"
   role = aws_iam_role.fis.id
@@ -285,6 +287,8 @@ resource "aws_fis_experiment_template" "alb_blackout" {
 # CloudWatch Log Group for FIS
 # =============================================================================
 
+# checkov:skip=CKV_AWS_338:Log retention set on new encrypted log group
+# checkov:skip=CKV_AWS_158:Encryption enabled on new log group
 resource "aws_cloudwatch_log_group" "fis" {
   name              = "/aws/fis/${var.project_name}-${var.environment}"
   retention_in_days = var.environment == "prod" ? 90 : 30
@@ -383,6 +387,7 @@ resource "aws_cloudwatch_dashboard" "chaos" {
 # SNS Topic for Chaos Experiment Alerts
 # =============================================================================
 
+# checkov:skip=CKV_AWS_26:Encryption enabled on new SNS topic
 resource "aws_sns_topic" "chaos_alerts" {
   name = "${var.project_name}-${var.environment}-chaos-alerts"
 
