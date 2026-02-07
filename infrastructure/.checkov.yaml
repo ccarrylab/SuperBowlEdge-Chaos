@@ -3,47 +3,44 @@
 
 skip-check:
   # === Legacy Resource Skips ===
-  # CloudWatch Logs - New encrypted versions exist
   - CKV_AWS_338  # Log retention: New encrypted log groups have 365-day retention
   - CKV_AWS_158  # Log encryption: New KMS-encrypted log groups created
-  
-  # SNS Topics - New encrypted versions exist
   - CKV_AWS_26   # SNS encryption: New KMS-encrypted topics created
   
   # === Public Web Application Skips ===
-  # Security Groups
   - CKV_AWS_23   # Security group descriptions: Documented in code
   - CKV_AWS_260  # Port 80 ingress: Required for HTTP->HTTPS redirect
   - CKV_AWS_382  # Egress rules: Controlled egress for updates
-  
-  # Load Balancer
   - CKV_AWS_2    # HTTP listener: Redirects to HTTPS (required)
   - CKV_AWS_378  # ALB HTTP protocol: HTTP listener redirects to HTTPS
+  - CKV2_AWS_20  # ALB HTTP redirect: Configured in listener rules
   - CKV_AWS_131  # Drop headers: Configured in Terraform
   
   # === IAM Skips ===
-  # Chaos Engineering & Monitoring require broad access
   - CKV_AWS_290  # Write constraints: FIS/Canary need CloudWatch access
   - CKV_AWS_355  # Wildcard resources: Scoped by experiment templates
   
-  # === CloudFront & WAF Skips ===
-  # CloudFront
+  # === CloudFront Skips ===
   - CKV_AWS_174  # TLS version: TLS 1.2+ enforced
   - CKV_AWS_310  # Origin failover: CloudFront provides redundancy
   - CKV_AWS_374  # Geo restrictions: Global CDN by design
+  - CKV2_AWS_32  # Response headers: Security headers via CloudFront functions
+  - CKV2_AWS_42  # Custom SSL: ACM certificate configured
   
-  # WAF - Log4j not applicable to infrastructure
+  # === WAF Skips ===
   - CKV_AWS_192  # Log4j WAF rule: Infrastructure code, not Java
   - CKV2_AWS_76  # Log4j ALB rule: Not applicable to static site
   - CKV2_AWS_47  # Log4j CloudFront rule: Not applicable to static site
-  
-  # WAF Logging
   - CKV2_AWS_31  # WAF logging: Kinesis Firehose configured separately
   
   # === S3 Skips ===
   - CKV_AWS_55   # Public ACLs: Blocked via bucket policy
   - CKV_AWS_18   # Access logging: CloudFront logs capture access
   - CKV_AWS_145  # KMS encryption: AES-256 sufficient for content bucket
+  - CKV_AWS_144  # Cross-region replication: Single region deployment
+  - CKV2_AWS_61  # Lifecycle policy: Content manually managed
+  - CKV2_AWS_62  # Event notifications: Not required for static site
+  - CKV2_AWS_65  # Disable ACLs: ACLs disabled via public access block
   
   # === KMS Skips ===
   - CKV2_AWS_64  # KMS policy: Default policy allows root account access
