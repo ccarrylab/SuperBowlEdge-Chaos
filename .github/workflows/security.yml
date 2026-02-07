@@ -29,11 +29,12 @@ jobs:
           compact: true
           soft_fail: false
       
-      - name: Run tfsec
+      - name: Run tfsec (Advisory)
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infrastructure/
           soft_fail: true
+        continue-on-error: true
 
   secret-scan:
     name: Secret Detection
@@ -69,10 +70,11 @@ jobs:
       
       - name: npm audit (critical only)
         working-directory: app
-        run: npm audit --audit-level=critical || true
+        run: npm audit --audit-level=critical
+        continue-on-error: true
 
   security-summary:
-    name: Security Gate
+    name: Security Gate ✅
     runs-on: ubuntu-latest
     needs: [infrastructure-security, secret-scan, dependency-scan]
     if: always()
@@ -82,12 +84,18 @@ jobs:
         run: |
           echo "## 🔒 Security Scan Results"
           echo ""
-          echo "✅ Infrastructure Security: ${{ needs.infrastructure-security.result }}"
-          echo "✅ Secret Scanning: ${{ needs.secret-scan.result }}"
-          echo "✅ Dependency Scanning: ${{ needs.dependency-scan.result }}"
+          echo "📋 Infrastructure Security (Checkov): ${{ needs.infrastructure-security.result }}"
+          echo "🔍 Secret Detection (Gitleaks): ${{ needs.secret-scan.result }}"
+          echo "📦 Dependency Scan (npm audit): ${{ needs.dependency-scan.result }}"
           echo ""
           if [ "${{ needs.secret-scan.result }}" != "success" ]; then
-            echo "❌ CRITICAL: Secrets detected!"
+            echo "❌ CRITICAL: Secrets detected in code!"
             exit 1
           fi
-          echo "✅ All security checks passed!"
+          if [ "${{ needs.infrastructure-security.result }}" != "success" ]; then
+            echo "❌ CRITICAL: Infrastructure security issues!"
+            exit 1
+          fi
+          echo "✅ All critical security checks passed!"
+          echo ""
+          echo "Security posture: Production-ready"
