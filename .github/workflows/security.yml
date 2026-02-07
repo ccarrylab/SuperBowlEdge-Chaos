@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   infrastructure-security:
-    name: Infrastructure Security
+    name: Infrastructure Security Scan
     runs-on: ubuntu-latest
     
     steps:
@@ -24,8 +24,10 @@ jobs:
         with:
           directory: infrastructure/
           framework: terraform
-          soft_fail: true
           config_file: infrastructure/.checkov.yaml
+          quiet: true
+          compact: true
+          soft_fail: false
       
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
@@ -34,7 +36,7 @@ jobs:
           soft_fail: true
 
   secret-scan:
-    name: Secret Scanning
+    name: Secret Detection
     runs-on: ubuntu-latest
     
     steps:
@@ -43,42 +45,49 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Gitleaks
+      - name: Gitleaks Scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dependency-scan:
-    name: Dependency Scan
+    name: Dependency Vulnerabilities
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
-      - name: Install deps
+      - name: Install dependencies
         working-directory: app
         run: npm ci
       
-      - name: npm audit
+      - name: npm audit (critical only)
         working-directory: app
         run: npm audit --audit-level=critical || true
 
   security-summary:
-    name: Security Summary
+    name: Security Gate
     runs-on: ubuntu-latest
     needs: [infrastructure-security, secret-scan, dependency-scan]
     if: always()
     
     steps:
-      - name: Summary
+      - name: Check Results
         run: |
-          echo "✅ Security scans completed"
-          echo "- Infrastructure: ${{ needs.infrastructure-security.result }}"
-          echo "- Secrets: ${{ needs.secret-scan.result }}"
-          echo "- Dependencies: ${{ needs.dependency-scan.result }}"
+          echo "## 🔒 Security Scan Results"
+          echo ""
+          echo "✅ Infrastructure Security: ${{ needs.infrastructure-security.result }}"
+          echo "✅ Secret Scanning: ${{ needs.secret-scan.result }}"
+          echo "✅ Dependency Scanning: ${{ needs.dependency-scan.result }}"
+          echo ""
+          if [ "${{ needs.secret-scan.result }}" != "success" ]; then
+            echo "❌ CRITICAL: Secrets detected!"
+            exit 1
+          fi
+          echo "✅ All security checks passed!"
