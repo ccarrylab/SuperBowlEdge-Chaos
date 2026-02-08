@@ -8,6 +8,7 @@ import { EdgeInfrastructure } from './sections/EdgeInfrastructure'
 import { SecurityMonitor } from './sections/SecurityMonitor'
 import { LiveStream } from './sections/LiveStream'
 import { CostAnalysis } from './sections/CostAnalysis'
+import { Architecture } from './sections/Architecture'
 import { Footer } from './components/Footer'
 
 export type ViewType = 'overview' | 'scoreboard' | 'cdn' | 'chaos' | 'infrastructure' | 'security' | 'stream' | 'cost'
@@ -57,6 +58,7 @@ function App() {
           {currentView === 'security' && <SecurityMonitor />}
           {currentView === 'stream' && <LiveStream />}
           {currentView === 'cost' && <CostAnalysis />}
+          {currentView === 'architecture' && <Architecture />}
         </div>
         <Footer />
       </main>

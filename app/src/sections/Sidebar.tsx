@@ -1,4 +1,4 @@
-import { 
+import { Map, 
   Home,
   Trophy, 
   Globe, 
@@ -28,7 +28,8 @@ const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'infrastructure', label: 'Edge Infrastructure', icon: Server },
   { id: 'security', label: 'Security Monitor', icon: Shield },
   { id: 'stream', label: 'Live Stream', icon: Video },
-  { id: 'cost', label: 'Cost Analysis', icon: DollarSign }
+  { id: 'cost', label: 'Cost Analysis', icon: DollarSign },
+  { id: 'architecture', label: 'Architecture', icon: Map }
 ]
 
 export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollapse }: SidebarProps) {

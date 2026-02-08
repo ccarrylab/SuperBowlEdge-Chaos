@@ -51,6 +51,33 @@ const savingsTips = [
 ]
 
 export function CostAnalysis() {
+
+  const handleExport = () => {
+    const report = {
+      generatedAt: new Date().toISOString(),
+      summary: {
+        currentMonthlyCost: 6592,
+        optimizedCost: 6095,
+        potentialSavings: 497,
+        savingsPercentage: 8
+      },
+      breakdown: costBreakdown.map(item => ({
+        service: item.name,
+        currentCost: item.cost,
+        optimizedCost: item.optimized,
+        savings: item.cost - item.optimized
+      })),
+      recommendations: savingsTips
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cost-report-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const totalCost = costBreakdown.reduce((sum, item) => sum + item.cost, 0)
   const optimizedCost = costBreakdown.reduce((sum, item) => sum + item.optimized, 0)
   const savings = totalCost - optimizedCost
@@ -72,7 +99,7 @@ export function CostAnalysis() {
           <h2 className="text-2xl font-bold">Cost Analysis</h2>
           <p className="text-muted-foreground">Monthly AWS infrastructure costs</p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExport}>
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>

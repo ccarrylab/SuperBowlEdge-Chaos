@@ -85,7 +85,7 @@ export function Scoreboard() {
               </div>
               <div>
                 <div className="text-yellow-300 text-5xl font-bold">
-                  24
+                  0
                 </div>
                 <div className="text-white/80 text-sm">SEAHAWKS</div>
               </div>
@@ -100,7 +100,7 @@ export function Scoreboard() {
             <div className="flex items-center justify-center gap-4">
               <div>
                 <div className="text-yellow-300 text-5xl font-bold">
-                  28
+                  0
                 </div>
                 <div className="text-white/80 text-sm">PATRIOTS</div>
               </div>
