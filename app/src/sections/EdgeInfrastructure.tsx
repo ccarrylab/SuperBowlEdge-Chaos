@@ -57,7 +57,7 @@ export function EdgeInfrastructure({ compact = false }: { compact?: boolean }) {
       icon: Cloud, 
       uptime: '99.99%', 
       latency: '23ms',
-      details: ['450+ Edge Locations', 'Cache Hit Rate: 94.7%', 'SSL/TLS Enabled']
+      details: ['Global CDN Coverage', 'Cache Hit Rate: 94.7%', 'SSL/TLS Enabled']
     },
     { 
       id: 'alb', 
@@ -295,7 +295,7 @@ export function EdgeInfrastructure({ compact = false }: { compact?: boolean }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Edge Locations</p>
-                <p className="text-2xl font-bold text-blue-400">450+</p>
+                <p className="text-2xl font-bold text-blue-400">5</p>
                 <p className="text-xs text-blue-400/70">Global</p>
               </div>
               <Globe className="w-8 h-8 text-blue-400" />

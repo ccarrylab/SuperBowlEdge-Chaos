@@ -83,7 +83,7 @@ export function LiveStream({ compact = false }: { compact?: boolean }) {
                 <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3 animate-pulse">
                   <Radio className="w-10 h-10 text-red-500" />
                 </div>
-                <p className="text-2xl font-bold text-white">SUPER BOWL LVIII</p>
+                <p className="text-2xl font-bold text-white">SUPER BOWL LX</p>
                 <p className="text-muted-foreground">Live Stream Active</p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function LiveStream({ compact = false }: { compact?: boolean }) {
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 via-amber-500 to-red-500 flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
                   <Radio className="w-16 h-16 text-white" />
                 </div>
-                <p className="text-4xl font-black gradient-text mb-2">SUPER BOWL LVIII</p>
+                <p className="text-4xl font-black gradient-text mb-2">SUPER BOWL LX</p>
                 <p className="text-xl text-muted-foreground">Live Stream Active</p>
               </div>
             </div>

@@ -219,7 +219,7 @@ export function CDNMetrics({ compact = false }: { compact?: boolean }) {
         </div>
         <Badge variant="outline" className="text-sm">
           <Globe className="w-4 h-4 mr-2" />
-          450+ Edge Locations
+          Global CDN
         </Badge>
       </div>
 

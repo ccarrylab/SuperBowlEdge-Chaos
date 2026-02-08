@@ -135,8 +135,12 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
 
+  aliases = ["chaos.ccarrylab.com"]
+
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = "arn:aws:acm:us-east-1:089719647189:certificate/238ad34a-b62f-46fc-acaf-6fdc9b1476cd"
+    ssl_support_method         = "sni-only"
+    cloudfront_default_certificate = false
     minimum_protocol_version       = "TLSv1.2_2021"
   }
 

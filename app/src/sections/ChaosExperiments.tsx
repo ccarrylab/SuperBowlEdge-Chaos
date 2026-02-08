@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,13 @@ import {
   AlertTriangle,
   TrendingUp,
   Flame,
-  Globe
+  Globe,
+  Cpu,
+  Wifi,
+  XCircle,
+  Loader2,
+  RefreshCw,
+  Heart
 } from 'lucide-react'
 import { 
   Dialog, 
@@ -30,20 +36,29 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-interface Experiment {
+const API_BASE = 'https://pa86b0v1ve.execute-api.us-east-1.amazonaws.com/prod'
+
+interface ExperimentTemplate {
   id: string
   name: string
   description: string
-  type: 'blackout' | 'latency' | 'origin-failure' | 'ddos' | 'cache-purge'
-  status: 'idle' | 'running' | 'completed' | 'failed'
-  duration: number
-  progress: number
+  type: string
   impact: 'low' | 'medium' | 'high'
-  lastRun?: string
-  results?: {
-    downtime: string
-    recoveryTime: string
-    success: boolean
+  duration: string
+  icon: any
+}
+
+interface LiveStatus {
+  overallStatus: 'healthy' | 'chaos-active' | 'recovering'
+  runningExperiments: Array<{
+    id: string
+    status: string
+    templateId: string
+    startTime: string
+  }>
+  infrastructure: {
+    asg: { healthy: number; total: number; desired: number }
+    alb: { healthyTargets: number; totalTargets: number }
   }
 }
 
@@ -56,206 +71,288 @@ interface ExperimentRun {
   impact: string
 }
 
-const experimentIcons = {
-  'blackout': Cloud,
-  'latency': Activity,
-  'origin-failure': Server,
-  'ddos': Shield,
-  'cache-purge': Globe,
-}
+const EXPERIMENT_TEMPLATES: ExperimentTemplate[] = [
+  {
+    id: 'cpu-stress',
+    name: 'CPU Stress Test',
+    description: 'Stress CPU to 80% on one HAProxy instance to test auto-scaling triggers',
+    type: 'cpu-stress',
+    impact: 'medium',
+    duration: '5 min',
+    icon: Cpu
+  },
+  {
+    id: 'ec2-stop',
+    name: 'Instance Termination',
+    description: 'Stop 50% of HAProxy instances to test failover and ASG recovery',
+    type: 'ec2-stop',
+    impact: 'high',
+    duration: '5 min',
+    icon: Server
+  },
+  {
+    id: 'network-latency',
+    name: 'Network Latency Injection',
+    description: 'Inject 200ms latency on all HAProxy instances to test timeout handling',
+    type: 'network-latency',
+    impact: 'medium',
+    duration: '5 min',
+    icon: Wifi
+  },
+  {
+    id: 'alb-blackout',
+    name: 'Complete Origin Blackout',
+    description: 'Stop ALL HAProxy instances to simulate complete origin failure',
+    type: 'alb-blackout',
+    impact: 'high',
+    duration: '3 min',
+    icon: Cloud
+  }
+]
 
 const impactColors = {
-  low: 'text-emerald-400 bg-emerald-500/10',
-  medium: 'text-amber-400 bg-amber-500/10',
-  high: 'text-red-400 bg-red-500/10',
+  low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  medium: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+  high: 'text-red-400 bg-red-500/10 border-red-500/20',
+}
+
+const statusColors = {
+  healthy: 'text-emerald-400',
+  'chaos-active': 'text-red-400',
+  recovering: 'text-amber-400'
 }
 
 export function ChaosExperiments() {
-  const [experiments, setExperiments] = useState<Experiment[]>([
-    {
-      id: 'blackout',
-      name: 'Region Blackout',
-      description: 'Simulate complete CloudFront edge failure in a region',
-      type: 'blackout',
-      status: 'idle',
-      duration: 180,
-      progress: 0,
-      impact: 'high',
-      lastRun: '2 hours ago',
-      results: { downtime: '0s', recoveryTime: '8s', success: true }
-    },
-    {
-      id: 'latency',
-      name: 'Network Latency Spike',
-      description: 'Inject high latency between edge and origin',
-      type: 'latency',
-      status: 'idle',
-      duration: 120,
-      progress: 0,
-      impact: 'medium',
-      lastRun: '5 hours ago',
-      results: { downtime: '0s', recoveryTime: '3s', success: true }
-    },
-    {
-      id: 'origin-failure',
-      name: 'Origin Server Failure',
-      description: 'Test HAProxy failover when origin goes down',
-      type: 'origin-failure',
-      status: 'idle',
-      duration: 150,
-      progress: 0,
-      impact: 'high',
-      lastRun: '1 day ago',
-      results: { downtime: '2s', recoveryTime: '12s', success: true }
-    },
-    {
-      id: 'ddos',
-      name: 'DDoS Attack Simulation',
-      description: 'Test WAF rate limiting under attack',
-      type: 'ddos',
-      status: 'idle',
-      duration: 240,
-      progress: 0,
-      impact: 'medium',
-      lastRun: '2 days ago',
-      results: { downtime: '0s', recoveryTime: '5s', success: true }
-    },
-    {
-      id: 'cache-purge',
-      name: 'Mass Cache Invalidation',
-      description: 'Purge all cached content and measure origin load',
-      type: 'cache-purge',
-      status: 'idle',
-      duration: 300,
-      progress: 0,
-      impact: 'low',
-    },
-  ])
-
-  const [recentRuns] = useState<ExperimentRun[]>([
-    { id: '1', experimentName: 'Region Blackout', startTime: '2 hours ago', duration: '3m 12s', result: 'success', impact: '0% viewer loss' },
-    { id: '2', experimentName: 'Network Latency Spike', startTime: '5 hours ago', duration: '2m 45s', result: 'success', impact: '+45ms latency' },
-    { id: '3', experimentName: 'Origin Server Failure', startTime: '1 day ago', duration: '2m 30s', result: 'success', impact: 'Auto-failover' },
-    { id: '4', experimentName: 'DDoS Attack Simulation', startTime: '2 days ago', duration: '4m 08s', result: 'success', impact: 'WAF blocked 100%' },
-    { id: '5', experimentName: 'Mass Cache Invalidation', startTime: '3 days ago', duration: '5m 00s', result: 'success', impact: 'Origin handled load' },
-  ])
-
-  const [runningExperiment, setRunningExperiment] = useState<string | null>(null)
+  const [liveStatus, setLiveStatus] = useState<LiveStatus | null>(null)
+  const [activeExperiment, setActiveExperiment] = useState<string | null>(null)
+  const [experimentId, setExperimentId] = useState<string | null>(null)
+  const [isStarting, setIsStarting] = useState(false)
+  const [isStopping, setIsStopping] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [showConfirmDialog, setShowConfirmDialog] = useState<string | null>(null)
+  const [experimentHistory, setExperimentHistory] = useState<any[]>([])
+  const [pollCount, setPollCount] = useState(0)
 
-  useEffect(() => {
-    if (!runningExperiment) return
-
-    const interval = setInterval(() => {
-      setExperiments(prev => prev.map(exp => {
-        if (exp.id === runningExperiment && exp.status === 'running') {
-          const newProgress = exp.progress + (100 / (exp.duration / 5))
-          if (newProgress >= 100) {
-            setRunningExperiment(null)
-            return { 
-              ...exp, 
-              status: 'completed', 
-              progress: 100,
-              lastRun: 'Just now',
-              results: { downtime: '0s', recoveryTime: '10s', success: true }
-            }
+  // Fetch live status
+  const fetchLiveStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/chaos/live`)
+      if (response.ok) {
+        const data = await response.json()
+        setLiveStatus(data)
+        
+        // Update active experiment from live data
+        if (data.runningExperiments?.length > 0) {
+          const running = data.runningExperiments[0]
+          setExperimentId(running.id)
+          // Try to match template
+          const template = EXPERIMENT_TEMPLATES.find(t => 
+            running.templateId?.toLowerCase().includes(t.type.replace('-', ''))
+          )
+          if (template) {
+            setActiveExperiment(template.id)
           }
-          return { ...exp, progress: newProgress }
+        } else if (activeExperiment && !isStarting) {
+          // Experiment finished
+          setActiveExperiment(null)
+          setExperimentId(null)
         }
-        return exp
-      }))
-    }, 5000)
+      }
+    } catch (err) {
+      console.error('Failed to fetch live status:', err)
+    }
+  }, [activeExperiment, isStarting])
 
+  // Fetch experiment history
+  const fetchHistory = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/chaos/experiments`)
+      if (response.ok) {
+        const data = await response.json()
+        setExperimentHistory(data.experiments || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch history:', err)
+    }
+  }, [])
+
+  // Poll for updates
+  useEffect(() => {
+    fetchLiveStatus()
+    fetchHistory()
+    
+    const interval = setInterval(() => {
+      fetchLiveStatus()
+      setPollCount(c => c + 1)
+    }, 3000) // Poll every 3 seconds for real-time feel
+    
     return () => clearInterval(interval)
-  }, [runningExperiment])
+  }, [fetchLiveStatus, fetchHistory])
 
-  const startExperiment = (id: string) => {
-    setExperiments(prev => prev.map(exp => 
-      exp.id === id ? { ...exp, status: 'running', progress: 0 } : exp
-    ))
-    setRunningExperiment(id)
+  // Start experiment
+  const startExperiment = async (templateId: string) => {
+    setIsStarting(true)
+    setError(null)
     setShowConfirmDialog(null)
+    
+    try {
+      const response = await fetch(`${API_BASE}/chaos/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ experimentType: templateId })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start experiment')
+      }
+      
+      setActiveExperiment(templateId)
+      setExperimentId(data.experimentId)
+      
+      // Immediately fetch status
+      setTimeout(fetchLiveStatus, 1000)
+      
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setIsStarting(false)
+    }
   }
 
-  const stopExperiment = (id: string) => {
-    setExperiments(prev => prev.map(exp => 
-      exp.id === id ? { ...exp, status: 'idle', progress: 0 } : exp
-    ))
-    setRunningExperiment(null)
+  // Stop experiment
+  const stopExperiment = async () => {
+    if (!experimentId) return
+    
+    setIsStopping(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`${API_BASE}/chaos/stop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ experimentId })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to stop experiment')
+      }
+      
+      setActiveExperiment(null)
+      setExperimentId(null)
+      
+      // Refresh status
+      setTimeout(fetchLiveStatus, 1000)
+      setTimeout(fetchHistory, 2000)
+      
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setIsStopping(false)
+    }
   }
 
-  const ExperimentCard = ({ experiment }: { experiment: Experiment }) => {
-    const Icon = experimentIcons[experiment.type]
-    const isRunning = experiment.status === 'running'
+  const ExperimentCard = ({ template }: { template: ExperimentTemplate }) => {
+    const Icon = template.icon
+    const isActive = activeExperiment === template.id
+    const isAnyRunning = !!activeExperiment || (liveStatus?.runningExperiments?.length ?? 0) > 0
 
     return (
-      <Card className={`overflow-hidden transition-all duration-300 ${isRunning ? 'border-primary animate-pulse-glow' : ''}`}>
+      <Card className={`overflow-hidden transition-all duration-300 ${isActive ? 'border-red-500 ring-2 ring-red-500/20' : ''}`}>
         <CardContent className="p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${impactColors[experiment.impact]}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${impactColors[template.impact]} ${isActive ? 'animate-pulse' : ''}`}>
                 <Icon className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-semibold">{experiment.name}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{experiment.description}</p>
+                <h4 className="font-semibold flex items-center gap-2">
+                  {template.name}
+                  {isActive && (
+                    <Badge variant="destructive" className="animate-pulse">
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      RUNNING
+                    </Badge>
+                  )}
+                </h4>
+                <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
                 <div className="flex items-center gap-3 mt-2">
                   <Badge variant="outline" className="text-xs">
                     <Clock className="w-3 h-3 mr-1" />
-                    {Math.floor(experiment.duration / 60)}m
+                    {template.duration}
                   </Badge>
-                  <Badge variant="outline" className={`text-xs ${impactColors[experiment.impact]}`}>
+                  <Badge variant="outline" className={`text-xs ${impactColors[template.impact]}`}>
                     <AlertTriangle className="w-3 h-3 mr-1" />
-                    {experiment.impact} impact
+                    {template.impact} impact
                   </Badge>
-                  {experiment.lastRun && (
-                    <span className="text-xs text-muted-foreground">
-                      Last run: {experiment.lastRun}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              {isRunning ? (
+              {isActive ? (
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => stopExperiment(experiment.id)}
+                  onClick={stopExperiment}
+                  disabled={isStopping}
                 >
-                  <Square className="w-4 h-4 mr-1" />
+                  {isStopping ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Square className="w-4 h-4 mr-1" />
+                  )}
                   Stop
                 </Button>
               ) : (
-                <Dialog open={showConfirmDialog === experiment.id} onOpenChange={(open) => setShowConfirmDialog(open ? experiment.id : null)}>
+                <Dialog open={showConfirmDialog === template.id} onOpenChange={(open) => setShowConfirmDialog(open ? template.id : null)}>
                   <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Play className="w-4 h-4 mr-1" />
+                    <Button size="sm" disabled={isAnyRunning || isStarting}>
+                      {isStarting && showConfirmDialog === template.id ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Play className="w-4 h-4 mr-1" />
+                      )}
                       Run
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Run Chaos Experiment</DialogTitle>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Flame className="w-5 h-5 text-red-500" />
+                        Run Chaos Experiment
+                      </DialogTitle>
                       <DialogDescription>
-                        You are about to run <strong>{experiment.name}</strong> using AWS FIS 
-                        (Fault Injection Simulator).
+                        You are about to run <strong>{template.name}</strong> using AWS Fault Injection Simulator (FIS).
+                        This will affect your <strong>live production infrastructure</strong>.
                       </DialogDescription>
                     </DialogHeader>
-                    <Alert>
+                    <Alert className={impactColors[template.impact]}>
                       <AlertTriangle className="w-4 h-4" />
                       <AlertDescription>
-                        This experiment has <strong>{experiment.impact} impact</strong> and will run for {Math.floor(experiment.duration / 60)} minutes.
+                        <strong>{template.impact.toUpperCase()} IMPACT</strong> - {template.description}
+                        <br />
+                        <span className="text-xs mt-1 block">Duration: {template.duration}</span>
                       </AlertDescription>
                     </Alert>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setShowConfirmDialog(null)}>
                         Cancel
                       </Button>
-                      <Button onClick={() => startExperiment(experiment.id)}>
-                        <Play className="w-4 h-4 mr-2" />
-                        Start Experiment
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => startExperiment(template.id)}
+                        disabled={isStarting}
+                      >
+                        {isStarting ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Flame className="w-4 h-4 mr-2" />
+                        )}
+                        Start Chaos
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -264,35 +361,69 @@ export function ChaosExperiments() {
             </div>
           </div>
 
-          {isRunning && (
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span>{Math.round(experiment.progress)}%</span>
+          {isActive && experimentId && (
+            <div className="mt-4 p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-red-400 flex items-center gap-2">
+                  <Activity className="w-4 h-4 animate-pulse" />
+                  Experiment in progress...
+                </span>
+                <span className="text-muted-foreground font-mono text-xs">
+                  ID: {experimentId}
+                </span>
               </div>
-              <Progress value={experiment.progress} className="h-2" />
             </div>
           )}
+        </CardContent>
+      </Card>
+    )
+  }
 
-          {experiment.results && !isRunning && (
-            <div className="mt-4 pt-4 border-t border-border grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground">Downtime</p>
-                <p className="font-semibold text-emerald-400">{experiment.results.downtime}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Recovery</p>
-                <p className="font-semibold">{experiment.results.recoveryTime}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Result</p>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  <span className="font-semibold text-emerald-400">Passed</span>
-                </div>
-              </div>
+  const InfrastructureHealth = () => {
+    if (!liveStatus) return null
+    
+    const { asg, alb } = liveStatus.infrastructure
+    const isHealthy = asg.healthy === asg.total && alb.healthyTargets === alb.totalTargets
+    const isRecovering = liveStatus.overallStatus === 'recovering'
+    
+    return (
+      <Card className={`${isRecovering ? 'border-amber-500/50' : isHealthy ? 'border-emerald-500/50' : 'border-red-500/50'}`}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Heart className={`w-4 h-4 ${isHealthy ? 'text-emerald-400' : isRecovering ? 'text-amber-400 animate-pulse' : 'text-red-400 animate-pulse'}`} />
+              Infrastructure Health
+            </span>
+            <Badge variant="outline" className={statusColors[liveStatus.overallStatus]}>
+              {liveStatus.overallStatus === 'healthy' && 'Healthy'}
+              {liveStatus.overallStatus === 'chaos-active' && 'Chaos Active'}
+              {liveStatus.overallStatus === 'recovering' && 'Recovering...'}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">ASG Instances</p>
+              <p className={`text-2xl font-bold ${asg.healthy === asg.total ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {asg.healthy}/{asg.total}
+              </p>
+              <Progress 
+                value={(asg.healthy / Math.max(asg.total, 1)) * 100} 
+                className="h-1 mt-1"
+              />
             </div>
-          )}
+            <div>
+              <p className="text-xs text-muted-foreground">ALB Targets</p>
+              <p className={`text-2xl font-bold ${alb.healthyTargets === alb.totalTargets ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {alb.healthyTargets}/{alb.totalTargets}
+              </p>
+              <Progress 
+                value={(alb.healthyTargets / Math.max(alb.totalTargets, 1)) * 100} 
+                className="h-1 mt-1"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
     )
@@ -303,29 +434,39 @@ export function ChaosExperiments() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Chaos Engineering</h2>
-          <p className="text-muted-foreground">AWS FIS experiments for edge resilience</p>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            Chaos Engineering
+            <Badge variant="outline" className="text-xs font-normal">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
+              Live
+            </Badge>
+          </h2>
+          <p className="text-muted-foreground">AWS FIS experiments for edge resilience - Real infrastructure testing</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="text-sm">
-            <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-            89 tests run
-          </Badge>
-          <Badge variant="outline" className="text-sm">
-            <TrendingUp className="w-4 h-4 mr-2 text-primary" />
-            98/100 score
-          </Badge>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => { fetchLiveStatus(); fetchHistory(); }}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Stats */}
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <XCircle className="w-4 h-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Live Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <InfrastructureHealth />
+        
         <Card className="bg-gradient-to-br from-emerald-500/10 to-transparent border-emerald-500/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold text-emerald-400">99.1%</p>
+                <p className="text-sm text-muted-foreground">Total Experiments</p>
+                <p className="text-2xl font-bold text-emerald-400">{experimentHistory.length}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-emerald-400" />
             </div>
@@ -336,36 +477,28 @@ export function ChaosExperiments() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg Recovery</p>
-                <p className="text-2xl font-bold text-primary">6s</p>
-              </div>
-              <RotateCcw className="w-8 h-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Viewer Uptime</p>
-                <p className="text-2xl font-bold text-amber-400">99.97%</p>
-              </div>
-              <Activity className="w-8 h-8 text-amber-400" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-red-500/10 to-transparent border-red-500/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Tests</p>
-                <p className="text-2xl font-bold text-red-400">
-                  {experiments.filter(e => e.status === 'running').length}
+                <p className="text-sm text-muted-foreground">Success Rate</p>
+                <p className="text-2xl font-bold text-primary">
+                  {experimentHistory.length > 0 
+                    ? Math.round((experimentHistory.filter(e => e.status === 'completed').length / experimentHistory.length) * 100)
+                    : 0}%
                 </p>
               </div>
-              <Flame className="w-8 h-8 text-red-400" />
+              <TrendingUp className="w-8 h-8 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={`bg-gradient-to-br ${activeExperiment ? 'from-red-500/20 to-red-500/5 border-red-500/40' : 'from-red-500/10 to-transparent border-red-500/20'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Active Chaos</p>
+                <p className={`text-2xl font-bold ${activeExperiment ? 'text-red-400 animate-pulse' : 'text-red-400'}`}>
+                  {liveStatus?.runningExperiments?.length || 0}
+                </p>
+              </div>
+              <Flame className={`w-8 h-8 text-red-400 ${activeExperiment ? 'animate-pulse' : ''}`} />
             </div>
           </CardContent>
         </Card>
@@ -373,14 +506,22 @@ export function ChaosExperiments() {
 
       <Tabs defaultValue="experiments" className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-          <TabsTrigger value="experiments">Experiments</TabsTrigger>
+          <TabsTrigger value="experiments">Run Experiments</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="experiments" className="space-y-4">
+          <Alert>
+            <AlertTriangle className="w-4 h-4" />
+            <AlertDescription>
+              These experiments run against <strong>real AWS infrastructure</strong>. 
+              The system is designed to auto-recover, but use with caution.
+            </AlertDescription>
+          </Alert>
+          
           <div className="grid grid-cols-1 gap-4">
-            {experiments.map(experiment => (
-              <ExperimentCard key={experiment.id} experiment={experiment} />
+            {EXPERIMENT_TEMPLATES.map(template => (
+              <ExperimentCard key={template.id} template={template} />
             ))}
           </div>
         </TabsContent>
@@ -389,27 +530,43 @@ export function ChaosExperiments() {
           <Card>
             <CardHeader>
               <CardTitle>Recent Experiment Runs</CardTitle>
-              <CardDescription>Last 30 days of chaos engineering tests</CardDescription>
+              <CardDescription>Actual AWS FIS experiments from your account</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentRuns.map((run) => (
-                  <div key={run.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-emerald-400" />
+                {experimentHistory.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    No experiments run yet. Start your first chaos experiment above!
+                  </p>
+                ) : (
+                  experimentHistory.map((run) => (
+                    <div key={run.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          run.status === 'completed' ? 'bg-emerald-500/20' : 
+                          run.status === 'failed' ? 'bg-red-500/20' : 
+                          run.status === 'running' ? 'bg-amber-500/20' : 'bg-gray-500/20'
+                        }`}>
+                          {run.status === 'completed' && <CheckCircle className="w-5 h-5 text-emerald-400" />}
+                          {run.status === 'failed' && <XCircle className="w-5 h-5 text-red-400" />}
+                          {run.status === 'running' && <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />}
+                          {!['completed', 'failed', 'running'].includes(run.status) && <Clock className="w-5 h-5 text-gray-400" />}
+                        </div>
+                        <div>
+                          <p className="font-medium font-mono text-sm">{run.id}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(run.creationTime).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{run.experimentName}</p>
-                        <p className="text-sm text-muted-foreground">{run.startTime}</p>
+                      <div className="text-right">
+                        <Badge variant={run.status === 'completed' ? 'default' : run.status === 'failed' ? 'destructive' : 'secondary'}>
+                          {run.status}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{run.duration}</p>
-                      <p className="text-sm text-emerald-400">{run.impact}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

@@ -16,7 +16,7 @@ export function MetricsOverview() {
     },
     {
       title: "Edge Locations",
-      value: "450+",
+      value: "5",
       change: "Global",
       trend: "neutral",
       icon: Globe,

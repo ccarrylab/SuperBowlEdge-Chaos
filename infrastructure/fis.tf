@@ -45,6 +45,14 @@ resource "aws_iam_role_policy" "fis" {
           "elasticloadbalancing:RegisterTargets",
           "cloudwatch:PutMetricData",
           "logs:CreateLogGroup",
+          "logs:CreateLogDelivery",
+          "logs:DeleteLogDelivery",
+          "logs:DescribeLogGroups",
+          "logs:DescribeResourcePolicies",
+          "logs:GetLogDelivery",
+          "logs:ListLogDeliveries",
+          "logs:PutResourcePolicy",
+          "logs:UpdateLogDelivery",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "ssm:SendCommand",
@@ -402,3 +410,4 @@ resource "aws_sns_topic_subscription" "chaos_email" {
   protocol  = "email"
   endpoint  = var.alert_emails[count.index]
 }
+

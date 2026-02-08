@@ -486,7 +486,6 @@ resource "aws_kms_key" "logs" {
   tags = local.common_tags
 }
 
-data "aws_caller_identity" "current" {}
 
 # Update existing log groups with encryption and retention
 resource "aws_cloudwatch_log_group" "haproxy_encrypted" {

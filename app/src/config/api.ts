@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'https://ke2z9vq7tk.execute-api.us-east-1.amazonaws.com/prod';
+export const API_BASE_URL = 'https://pa86b0v1ve.execute-api.us-east-1.amazonaws.com/prod';
 
 export const API_ENDPOINTS = {
   cloudfront: `${API_BASE_URL}/metrics/cloudfront`,

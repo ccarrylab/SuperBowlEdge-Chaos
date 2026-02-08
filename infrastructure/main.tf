@@ -94,33 +94,28 @@ module "vpc" {
 
 # checkov:skip=CKV_AWS_23:Security group rules documented in comments
 resource "aws_security_group" "alb" {
-  description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
-  description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
   name_prefix = "${var.project_name}-${var.environment}-alb-"
-  description = "Security group for Application Load Balancer"
+  description = "Security group for Application Load Balancer - allows HTTP/HTTPS from internet"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "Allow HTTP from internet"
-    description = "Allow HTTP from internet"
+    description = "HTTP from internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP"
   }
 
   ingress {
-    description = "Allow HTTP from internet"
-    description = "Allow HTTP from internet"
+    description = "HTTPS from internet"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS"
   }
 
   egress {
+    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -138,33 +133,28 @@ resource "aws_security_group" "alb" {
 
 # checkov:skip=CKV_AWS_23:Security group rules documented in comments
 resource "aws_security_group" "haproxy" {
-  description = "Security group for HAProxy instances - allows traffic from ALB"
-  description = "Security group for HAProxy instances - allows traffic from ALB"
   name_prefix = "${var.project_name}-${var.environment}-haproxy-"
-  description = "Security group for HAProxy origin servers"
+  description = "Security group for HAProxy instances - allows traffic from ALB"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "Allow HTTP from internet"
-    description = "Allow HTTP from internet"
+    description     = "HTTP from ALB"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
-    description     = "HTTP from ALB"
   }
 
   ingress {
-    description = "Allow HTTP from internet"
-    description = "Allow HTTP from internet"
+    description = "SSH from VPC"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
-    description = "SSH from VPC"
   }
 
   egress {
+    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -272,7 +262,6 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# FIXED: Use file() with fixed script instead of templatefile
 resource "aws_launch_template" "haproxy" {
   name_prefix   = "${var.project_name}-${var.environment}-haproxy-"
   image_id      = data.aws_ami.amazon_linux.id
@@ -280,7 +269,6 @@ resource "aws_launch_template" "haproxy" {
 
   vpc_security_group_ids = [aws_security_group.haproxy.id]
 
-  # FIXED: Reference fixed userdata script directly
   user_data = filebase64("${path.module}/haproxy-userdata-fixed.sh")
 
   iam_instance_profile {
@@ -593,4 +581,16 @@ resource "aws_s3_bucket_public_access_block" "content" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# =============================================================================
+# Common Tags
+# =============================================================================
+
+locals {
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
 }

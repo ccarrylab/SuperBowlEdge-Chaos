@@ -55,7 +55,7 @@ export function Scoreboard() {
             >
               <Zap className="w-8 h-8 text-white" />
             </motion.div>
-            <h1 className="text-2xl font-bold text-white">SUPER BOWL XLIX</h1>
+            <h1 className="text-2xl font-bold text-white">SUPER BOWL LX</h1>
           </div>
           <div className="flex items-center gap-4">
             <motion.span
@@ -80,7 +80,7 @@ export function Scoreboard() {
             className="text-center"
           >
             <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/50">
+              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-green-700/50">
                 <span className="text-white font-bold text-xl">SEA</span>
               </div>
               <div>
@@ -113,7 +113,7 @@ export function Scoreboard() {
 
         {/* Game Status */}
         <div className="mt-4 text-center">
-          <div className="text-white/60 text-sm">4th Quarter • 0:02 • Final</div>
+          <div className="text-white/60 text-sm">Kickoff • Feb 8, 2026 • 6:30 PM ET</div>
           <div className="text-white/80 text-xs mt-1">Live Viewers: <AnimatedCounter value={liveViewers} /></div>
         </div>
       </motion.div>
@@ -158,8 +158,8 @@ export function Scoreboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">450+</div>
-            <p className="text-xs text-gray-500">Active coverage</p>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-gray-500">AWS Regions</p>
           </CardContent>
         </NeonCard>
 

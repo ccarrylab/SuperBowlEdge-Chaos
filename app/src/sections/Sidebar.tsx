@@ -1,4 +1,5 @@
 import { 
+  Home,
   Trophy, 
   Globe, 
   Zap, 
@@ -6,8 +7,6 @@ import {
   Shield, 
   Video, 
   DollarSign,
-  ChevronLeft,
-  ChevronRight,
   Radio
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -22,6 +21,7 @@ interface SidebarProps {
 }
 
 const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
+  { id: 'overview', label: 'Overview', icon: Home },
   { id: 'scoreboard', label: 'Scoreboard', icon: Trophy },
   { id: 'cdn', label: 'CDN Metrics', icon: Globe },
   { id: 'chaos', label: 'Chaos Experiments', icon: Zap },
@@ -59,7 +59,7 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
           )}
         </div>
 
-        {/* Live Indicator - Only show when not collapsed */}
+        {/* Live Indicator */}
         {!isCollapsed && (
           <div className="flex justify-center py-2 border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
@@ -70,7 +70,7 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
         )}
 
         {/* Navigation */}
-        <nav className="p-2 space-y-1">
+        <nav className="p-2 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
           {navItems.map((item) => (
             isCollapsed ? (
               <Tooltip key={item.id}>
@@ -107,13 +107,13 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
           ))}
         </nav>
 
-        {/* Bottom Section - Status only */}
+        {/* Bottom Section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sidebar-border">
           {!isCollapsed ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <div className="w-2 h-2 rounded-full status-online animate-pulse" />
-                <span>Edge Operational</span>
+                <span>All Systems Operational</span>
               </div>
             </div>
           ) : (
@@ -124,7 +124,7 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
                 </div>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Edge Operational</p>
+                <p>All Systems Operational</p>
               </TooltipContent>
             </Tooltip>
           )}
