@@ -19,3 +19,4 @@
 *.log
 .env
 github-trust-policy.json
+*.json # Or specific *.trust*.json
