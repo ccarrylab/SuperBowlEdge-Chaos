@@ -133,7 +133,6 @@ export function ChaosExperiments() {
   const [experimentHistory, setExperimentHistory] = useState<any[]>([])
   const [pollCount, setPollCount] = useState(0)
 
-  // Fetch live status
   const fetchLiveStatus = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/chaos/live`)
@@ -141,11 +140,9 @@ export function ChaosExperiments() {
         const data = await response.json()
         setLiveStatus(data)
         
-        // Update active experiment from live data
         if (data.runningExperiments?.length > 0) {
           const running = data.runningExperiments[0]
           setExperimentId(running.id)
-          // Try to match template
           const template = EXPERIMENT_TEMPLATES.find(t => 
             running.templateId?.toLowerCase().includes(t.type.replace('-', ''))
           )
@@ -153,7 +150,6 @@ export function ChaosExperiments() {
             setActiveExperiment(template.id)
           }
         } else if (activeExperiment && !isStarting) {
-          // Experiment finished
           setActiveExperiment(null)
           setExperimentId(null)
         }
@@ -163,7 +159,6 @@ export function ChaosExperiments() {
     }
   }, [activeExperiment, isStarting])
 
-  // Fetch experiment history
   const fetchHistory = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/chaos/experiments`)
@@ -176,7 +171,6 @@ export function ChaosExperiments() {
     }
   }, [])
 
-  // Poll for updates
   useEffect(() => {
     fetchLiveStatus()
     fetchHistory()
@@ -184,12 +178,11 @@ export function ChaosExperiments() {
     const interval = setInterval(() => {
       fetchLiveStatus()
       setPollCount(c => c + 1)
-    }, 3000) // Poll every 3 seconds for real-time feel
+    }, 3000)
     
     return () => clearInterval(interval)
   }, [fetchLiveStatus, fetchHistory])
 
-  // Start experiment
   const startExperiment = async (templateId: string) => {
     setIsStarting(true)
     setError(null)
@@ -211,7 +204,6 @@ export function ChaosExperiments() {
       setActiveExperiment(templateId)
       setExperimentId(data.experimentId)
       
-      // Immediately fetch status
       setTimeout(fetchLiveStatus, 1000)
       
     } catch (err: any) {
@@ -221,7 +213,6 @@ export function ChaosExperiments() {
     }
   }
 
-  // Stop experiment
   const stopExperiment = async () => {
     if (!experimentId) return
     
@@ -244,7 +235,6 @@ export function ChaosExperiments() {
       setActiveExperiment(null)
       setExperimentId(null)
       
-      // Refresh status
       setTimeout(fetchLiveStatus, 1000)
       setTimeout(fetchHistory, 2000)
       
@@ -431,7 +421,6 @@ export function ChaosExperiments() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -449,7 +438,6 @@ export function ChaosExperiments() {
         </Button>
       </div>
 
-      {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
           <XCircle className="w-4 h-4" />
@@ -457,7 +445,6 @@ export function ChaosExperiments() {
         </Alert>
       )}
 
-      {/* Live Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <InfrastructureHealth />
         

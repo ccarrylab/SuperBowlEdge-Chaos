@@ -1,0 +1,1 @@
+{"errorMessage": "Syntax error in module 'metrics': invalid syntax (metrics.py, line 56)", "errorType": "Runtime.UserCodeSyntaxError", "requestId": "", "stackTrace": ["  File \"/var/task/metrics.py\" Line 56\n        elif\n"]}

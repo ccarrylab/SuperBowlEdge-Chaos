@@ -40,6 +40,15 @@ export function Scoreboard() {
   
   return (
     <div className="space-y-6">
+      {/* Championship Banner */}
+      <div style={{background: "#4F46E5", color: "white", padding: "1.5rem", textAlign: "center", margin: "2rem 0", borderRadius: "12px", boxShadow: "0 10px 25px rgba(79,70,229,0.3)"}}>
+        <div style={{fontSize: "1.8rem", fontWeight: 800, marginBottom: "0.5rem"}}>🏆 SUPER BOWL LX FINAL</div>
+        <div style={{fontSize: "3rem", fontWeight: 900, background: "linear-gradient(90deg, #10B981, #F59E0B)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"}}>
+          SEAHAWKS 29 - 13 PATRIOTS
+        </div>
+        <div style={{fontSize: "1.1rem", opacity: 0.9, marginTop: "0.5rem"}}>Chaos Engineering: 100% Resilience</div>
+      </div>
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -80,12 +89,12 @@ export function Scoreboard() {
             className="text-center"
           >
             <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-green-700/50">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-green-700/50">
                 <span className="text-white font-bold text-xl">SEA</span>
               </div>
               <div>
                 <div className="text-yellow-300 text-5xl font-bold">
-                  0
+                  29
                 </div>
                 <div className="text-white/80 text-sm">SEAHAWKS</div>
               </div>
@@ -100,7 +109,7 @@ export function Scoreboard() {
             <div className="flex items-center justify-center gap-4">
               <div>
                 <div className="text-yellow-300 text-5xl font-bold">
-                  0
+                  13
                 </div>
                 <div className="text-white/80 text-sm">PATRIOTS</div>
               </div>
@@ -113,7 +122,7 @@ export function Scoreboard() {
 
         {/* Game Status */}
         <div className="mt-4 text-center">
-          <div className="text-white/60 text-sm">Kickoff • Feb 8, 2026 • 6:30 PM ET</div>
+          <div className="text-white/60 text-sm">FINAL • Feb 8, 2026 • Caesars Superdome</div>
           <div className="text-white/80 text-xs mt-1">Live Viewers: <AnimatedCounter value={liveViewers} /></div>
         </div>
       </motion.div>

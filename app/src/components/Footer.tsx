@@ -1,4 +1,5 @@
-import { Linkedin, Cloud } from 'lucide-react';
+import { Linkedin, Cloud, Github } from 'lucide-react';
+import { VisitorCounter } from './VisitorCounter';
 
 export function Footer() {
   
@@ -25,7 +26,17 @@ export function Footer() {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
               >
                 <Linkedin className="w-5 h-5" />
-                <span className="font-medium">Connect on LinkedIn</span>
+                <span className="font-medium">LinkedIn</span>
+              </a>
+              
+              <a
+                href="https://github.com/ccarrylab/SuperBowlEdge-Chaos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                <Github className="w-5 h-5" />
+                <span className="font-medium">GitHub</span>
               </a>
             </div>
           </div>
@@ -114,7 +125,11 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="mt-6 pt-6 border-t border-gray-800 text-center text-sm text-gray-500">
+        <div className="mt-6 pt-6 border-t border-gray-800">
+          <VisitorCounter />
+        </div>
+        
+        <div className="mt-4 text-center text-sm text-gray-500">
           <p>© {new Date().getFullYear()} Cohen Carryl. Super Bowl Edge Chaos Engineering Platform.</p>
           <p className="mt-1 text-xs">Production-grade edge infrastructure with real-time AWS metrics & chaos testing</p>
         </div>

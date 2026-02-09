@@ -148,11 +148,11 @@ resource "aws_fis_experiment_template" "network_latency" {
     }
 
     parameter {
-      key   = "documentParameters"
+      key = "documentParameters"
       value = jsonencode({
-        DurationSeconds = "300"
+        DurationSeconds   = "300"
         DelayMilliseconds = "200"
-        Interface = "eth0"
+        Interface         = "eth0"
       })
     }
   }
@@ -210,11 +210,11 @@ resource "aws_fis_experiment_template" "cpu_stress" {
     }
 
     parameter {
-      key   = "documentParameters"
+      key = "documentParameters"
       value = jsonencode({
         DurationSeconds = "300"
-        CPU = "0"  # 0 means use all CPUs
-        LoadPercent = "80"
+        CPU             = "0" # 0 means use all CPUs
+        LoadPercent     = "80"
       })
     }
   }

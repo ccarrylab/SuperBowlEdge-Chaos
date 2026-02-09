@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SuperBowlEdge Chaos Dashboard</title>
+<style>
+:root{--bg:#0a0a0f;--fg:#f8fafc;--p:#3b82f6;--d:#ef4444;--s:#10b981;--r:.625rem}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{background:var(--bg);color:var(--fg);padding:2rem;min-height:100vh}
+.c{max-width:1200px;margin:0 auto}
+h1{font-size:3.5rem;font-weight:900;text-align:center;margin:2rem 0;background:linear-gradient(135deg,var(--p),#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb{position:fixed;top:1rem;right:1rem;background:rgba(18,18,26,.95);backdrop-filter:blur(20px);border:1px solid #2d2d3a;border-radius:var(--r);padding:1.5rem;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:100}
+.sb h3{font-size:1.1rem;color:var(--p);margin-bottom:.75rem}
+.sv{font-size:1.4rem;font-weight:800}
+.running{color:var(--d)}
+.live{padding:3rem;text-align:center}
+.b{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin:3rem 0}
+.btn{padding:1.3rem 2.8rem;font-size:1.2rem;font-weight:800;border:none;border-radius:calc(var(--r));color:white;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.4);transition:all .3s;min-width:240px}
+.btn:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.6)}
+.btn1{background:linear-gradient(135deg,var(--d),#dc2626)}
+.btn2{background:linear-gradient(135deg,var(--p),#2563eb)}
+.btn3{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.m{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));display:grid;gap:2rem;margin:4rem 0}
+.cd{background:rgba(18,18,26,.9);backdrop-filter:blur(12px);border:1px solid #2d2d3a;border-radius:var(--r);padding:2.5rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="c">
+<h1>SuperBowlEdge Chaos Engineering</h1>
+
+<div class="sb">
+<h3>Live Chaos Status</h3>
+<div id="st" class="sv">Loading...</div>
+<div id="dt" style="font-size:.95rem;color:#94a3b8;margin-top:.75rem;line-height:1.5"></div>
+</div>
+
+<div class="live">
+<h2 style="color:var(--p);margin-bottom:2rem;font-size:2rem">Production Chaos Control</h2>
+<div class="b">
+<button class="btn btn1" onclick="tc('cpu')">CPU Storm (4w 60s)</button>
+<button class="btn btn2" onclick="tc('network')">Network Jam (2w 120s)</button>
+<button class="btn btn3" onclick="tc('memory')">Memory Leak (1w 300s)</button>
+</div>
+<p style="margin:2.5rem 0;color:#cbd5e1;font-size:1.1rem">Lambda -> SSM -> EC2 i-091798990d74dde24 -> stress-ng -> ALB Metrics</p>
+</div>
+
+<div class="m">
+<div class="cd"><h3 style="color:var(--s);margin-bottom:1rem">Target Instance</h3><div style="font-size:1.8rem;font-weight:800">i-091798990d74dde24</div></div>
+<div class="cd"><h3 style="color:var(--p);margin-bottom:1rem">Lambda Function</h3><div style="font-size:1.8rem;font-weight:800">sb-edge-chaos-trigger</div></div>
+<div class="cd"><h3 style="color:#f59e0b;margin-bottom:1rem">Architecture</h3><div>CloudFront->S3->Lambda->SSM->EC2->ALB->CloudWatch</div></div>
+</div>
+</div>
+
+<script>
+let si;
+async function us(){
+  try{
+    const r=await fetch('https://chaos.ccarrylab.com/status.json?'+Date.now(),{mode:'cors'});
+    const s=await r.json();
+    const st=document.getElementById('st'),dt=document.getElementById('dt');
+    st.textContent=s.status.toUpperCase();
+    st.className=s.status==='running'?'sv running':s.status==='completed'?'sv':'sv';
+    dt.innerHTML=`Instance: ${s.instance}<br>Last: ${s.lastChaos||'Idle'}<br>${new Date(s.timestamp).toLocaleString()}`;
+  }catch(e){
+    document.getElementById('st').textContent='Status Unavailable';
+  }
+}
+async function tc(t){
+  const p={type:t,workers:4,seconds:60};
+  document.getElementById('st').textContent='INJECTING...';
+  try{
+    await fetch('https://sb-edge-chaos-trigger.lambda-url.us-east-1.on.aws/',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)
+    });
+  }catch(e){}
+  us();
+}
+us();
+si=setInterval(us,2500);
+</script>
+</body>
+</html>

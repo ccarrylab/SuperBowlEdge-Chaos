@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBowlEdge Chaos Dashboard</title>
+<link rel="stylesheet" href="https://chaos.ccarrylab.com/assets/index-znNhZBVM.css">
+<style>
+.status-card{position:fixed;top:1rem;right:1rem;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:var(--radius);padding:1.5rem;min-width:280px;box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1);z-index:50}
+.status-card h3{font-size:0.875rem;color:hsl(var(--muted-foreground));margin-bottom:0.5rem;font-weight:500}
+.status-value{font-size:1.5rem;font-weight:700;color:hsl(var(--foreground))}
+.status-running{color:hsl(var(--destructive))}
+.btn-chaos{padding:1rem 1.5rem;font-size:1rem;font-weight:600;border-radius:calc(var(--radius) - 2px);border:none;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05)}
+.btn-cpu{background:hsl(var(--destructive));color:hsl(var(--destructive-foreground))}
+.btn-cpu:hover{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.btn-net{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
+.btn-net:hover{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+.btn-mem{background:#f59e0b;color:#ffffff}
+.btn-mem:hover{background:linear-gradient(135deg,#f59e0b,#d97706)}
+</style>
+</head>
+<body class="bg-background text-foreground">
+<div id="root">
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+
+<div class="status-card">
+<h3>Live Chaos Status</h3>
+<div id="status" class="status-value">IDLE</div>
+<div id="details" class="text-xs text-muted-foreground mt-2"></div>
+</div>
+
+<header class="text-center mb-12">
+<h1 class="text-5xl font-black mb-4 bg-gradient-to-r from-blue-500 to-amber-500 bg-clip-text text-transparent">SuperBowlEdge Chaos Dashboard</h1>
+<p class="text-xl text-muted-foreground">Production Infrastructure Chaos Engineering</p>
+</header>
+
+<section class="mb-16">
+<h2 class="text-2xl font-bold mb-8 text-center text-primary">Execute Chaos Injection</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+<button onclick="chaos('cpu')" class="btn-chaos btn-cpu text-left">
+<div class="text-lg font-semibold">CPU Storm</div>
+<div class="text-sm opacity-80 mt-1">4 workers • 60 seconds</div>
+</button>
+<button onclick="chaos('network')" class="btn-chaos btn-net text-left">
+<div class="text-lg font-semibold">Network Jam</div>
+<div class="text-sm opacity-80 mt-1">2 workers • 120 seconds</div>
+</button>
+<button onclick="chaos('memory')" class="btn-chaos btn-mem text-left">
+<div class="text-lg font-semibold">Memory Leak</div>
+<div class="text-sm opacity-80 mt-1">1 worker • 300 seconds</div>
+</button>
+</div>
+</section>
+
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-card border border-border rounded-lg p-6">
+<h3 class="text-sm text-muted-foreground mb-2 font-medium">Target Instance</h3>
+<div class="text-2xl font-bold text-primary">i-091798990d74dde24</div>
+</div>
+<div class="bg-card border border-border rounded-lg p-6">
+<h3 class="text-sm text-muted-foreground mb-2 font-medium">Lambda Function</h3>
+<div class="text-2xl font-bold text-primary">sb-edge-chaos-trigger</div>
+</div>
+<div class="bg-card border border-border rounded-lg p-6">
+<h3 class="text-sm text-muted-foreground mb-2 font-medium">Architecture</h3>
+<div class="font-mono text-sm text-emerald-400 leading-relaxed">CloudFront → S3 → Lambda → SSM → EC2 → ALB</div>
+</div>
+</section>
+
+</div>
+</div>
+
+<script>
+async function update(){
+  try{
+    const r=await fetch('https://chaos.ccarrylab.com/status.json');
+    const s=await r.json();
+    const el=document.getElementById('status');
+    el.textContent=s.status.toUpperCase();
+    el.className=s.status==='running'?'status-value status-running':'status-value';
+    document.getElementById('details').innerHTML=`${s.instance}<br>Last: ${s.lastChaos||'None'}<br>${new Date(s.timestamp).toLocaleString()}`;
+  }catch(e){
+    document.getElementById('status').textContent='UNAVAILABLE';
+  }
+}
+async function chaos(t){
+  const p={cpu:{type:'cpu',workers:4,seconds:60},network:{type:'network',workers:2,seconds:120},memory:{type:'memory',workers:1,seconds:300}};
+  try{
+    await fetch('https://sb-edge-chaos-trigger.lambda-url.us-east-1.on.aws/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p[t])});
+  }catch(e){}
+  update();
+}
+update();
+setInterval(update,2500);
+</script>
+</body>
+</html>

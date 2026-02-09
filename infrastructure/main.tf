@@ -12,7 +12,7 @@
 
 terraform {
   required_version = ">= 1.5.0"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -175,12 +175,12 @@ resource "aws_security_group" "haproxy" {
 # =============================================================================
 
 resource "aws_lb" "main" {
-  name               = "${var.project_name}-${var.environment}-alb"
-  internal           = false
-  load_balancer_type = "application"
+  name                       = "${var.project_name}-${var.environment}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
   drop_invalid_header_fields = true
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = module.vpc.public_subnets
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = module.vpc.public_subnets
 
   enable_deletion_protection = var.environment == "prod"
   enable_http2               = true
@@ -294,10 +294,10 @@ resource "aws_launch_template" "haproxy" {
 }
 
 resource "aws_autoscaling_group" "haproxy" {
-  name                = "${var.project_name}-${var.environment}-haproxy-asg"
-  vpc_zone_identifier = module.vpc.private_subnets
-  target_group_arns   = [aws_lb_target_group.haproxy.arn]
-  health_check_type   = "ELB"
+  name                      = "${var.project_name}-${var.environment}-haproxy-asg"
+  vpc_zone_identifier       = module.vpc.private_subnets
+  target_group_arns         = [aws_lb_target_group.haproxy.arn]
+  health_check_type         = "ELB"
   health_check_grace_period = 300
 
   min_size         = var.haproxy_min_size
@@ -529,7 +529,7 @@ resource "aws_s3_bucket_policy" "logs" {
         Principal = {
           AWS = "arn:aws:iam::${lookup(local.elb_service_accounts, var.aws_region, "127311923021")}:root"
         }
-        Action = "s3:PutObject"
+        Action   = "s3:PutObject"
         Resource = "${aws_s3_bucket.logs.arn}/alb-logs/*"
       },
       {
@@ -538,7 +538,7 @@ resource "aws_s3_bucket_policy" "logs" {
         Principal = {
           Service = "elasticloadbalancing.amazonaws.com"
         }
-        Action = "s3:GetBucketAcl"
+        Action   = "s3:GetBucketAcl"
         Resource = aws_s3_bucket.logs.arn
       }
     ]

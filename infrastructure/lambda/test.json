@@ -1,0 +1,1 @@
+{"errorMessage": "Syntax error in module 'metrics': expected an indented block after 'if' statement on line 54 (metrics.py, line 55)", "errorType": "Runtime.UserCodeSyntaxError", "requestId": "", "stackTrace": ["  File \"/var/task/metrics.py\" Line 55\n            return get_nfl_scores()\n"]}

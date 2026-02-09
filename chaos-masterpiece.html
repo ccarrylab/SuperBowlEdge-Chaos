@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SuperBowlEdge | Production Chaos Engineering</title>
+<meta name="viewport" content="width=device-width">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+:root{--bg:#000;--fg:#e2e8f0;--p:#00f5ff;--s:#00ff88;--d:#ff0040;--g:#ffaa00;--r:20px;--glow:0 0 30px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui}
+body{background:linear-gradient(135deg,#000,#0a0a1f);color:var(--fg);min-height:100vh;overflow-x:hidden}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.particle{position:absolute;background:linear-gradient(45deg,var(--p),var(--s));border-radius:50%;animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) scale(1);opacity:.6}50%{transform:translateY(-20px) scale(1.1);opacity:1}}
+.c{position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:2rem 2rem 4rem}
+.hero{position:relative;text-align:center;padding:4rem 2rem}
+.hero h1{font-size:clamp(3rem,8vw,6rem);font-weight:800;background:linear-gradient(135deg,var(--p),var(--s),var(--g));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;margin-bottom:1rem;text-shadow:var(--glow)}
+.hero .tag{font-size:clamp(1rem,2vw,1.5rem);background:linear-gradient(135deg,#333,#555);padding:1rem 2rem;border-radius:50px;border:1px solid #444;backdrop-filter:blur(20px);display:inline-block;margin-bottom:3rem;box-shadow:var(--glow)}
+.status{position:fixed;top:2rem;right:2rem;background:linear-gradient(135deg,rgba(10,10,31,.95),rgba(0,0,0,.98));backdrop-filter:blur(40px);border:1px solid rgba(0,245,255,.3);border-radius:var(--r);padding:2rem;min-width:340px;max-width:380px;box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,.1);z-index:100}
+.status h3{font-size:1.2rem;font-weight:600;background:var(--p);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem}
+.status-main{font-size:2.2rem;font-weight:900;margin-bottom:.5rem}
+.running{color:var(--d);animation:pulse 2s infinite;text-shadow:var(--glow)}
+.completed{color:var(--s);text-shadow:0 0 20px var(--s)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.details{font-size:.95rem;line-height:1.6;opacity:.85}
+.live{text-align:center;padding:5rem 3rem 3rem}
+.live h2{font-size:2.5rem;font-weight:600;color:var(--p);margin-bottom:2.5rem}
+.buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:2rem;margin:3rem 0}
+.btn{position:relative;padding:1.5rem 3rem;font-size:1.3rem;font-weight:800;border:none;border-radius:calc(var(--r));color:white;cursor:pointer;box-shadow:var(--glow);transition:all .4s cubic-bezier(.25,.46,.45,.94);overflow:hidden;backdrop-filter:blur(20px);font-family:inherit;min-width:260px;letter-spacing:.5px}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:inherit}
+.btn:hover::before{left:100%}
+.btn1{background:linear-gradient(135deg,var(--d),#cc0033);box-shadow:0 0 40px rgba(255,0,64,.6)}
+.btn2{background:linear-gradient(135deg,var(--p),#00b8d9);box-shadow:0 0 40px rgba(0,245,255,.6)}
+.btn3{background:linear-gradient(135deg,var(--g),#cc8800);box-shadow:0 0 40px rgba(255,170,0,.6)}
+.btn:active{transform:scale(.97)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2.5rem;margin:5rem 0}
+.card{position:relative;background:linear-gradient(145deg,rgba(18,18,26,.9),rgba(10,10,31,.95));backdrop-filter:blur(30px);border:1px solid rgba(0,245,255,.2);border-radius:var(--r);padding:3rem 2.5rem;text-align:center;transition:all .3s;box-shadow:var(--glow)}
+.card::before{content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;background:linear-gradient(45deg,var(--p),var(--s),var(--g));border-radius:inherit;z-index:-1;opacity:0;transition:opacity .3s}
+.card:hover::before{opacity:1}
+.card h3{font-size:1.2rem;color:#94a3b8;font-weight:500;margin-bottom:1.5rem;letter-spacing:.5px}
+.card-value{font-size:2.5rem;font-weight:900;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+.stack{font-family:'Courier New',monospace;font-size:1.1rem;color:var(--s);line-height:1.8}
+.footer{text-align:center;padding:4rem 2rem;color:#64748b;font-size:.95rem;border-top:1px solid rgba(255,255,255,.1);margin-top:6rem}
+@keyframes shimmer{0%{background-position:0% 0}100%{background-position:200% 0}}
+@media (max-width:768px){.status{right:1rem;left:1rem;top:auto;bottom:1rem;max-width:none}.buttons{gap:1rem}.btn{padding:1.2rem 2rem;min-width:200px;font-size:1.1rem}}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<div class="c">
+<div class="hero">
+<h1>SuperBowlEdge</h1>
+<div class="tag">Production Chaos Engineering Platform</div>
+</div>
+
+<div class="status">
+<h3>Live System Status</h3>
+<div id="status-main" class="status-main">IDLE</div>
+<div id="status-details" class="details">Monitoring i-091798990d74dde24<br>Ready for chaos injection</div>
+</div>
+
+<div class="live">
+<h2>Execute Production Chaos</h2>
+<div class="buttons">
+<button class="btn btn1" onclick="injectChaos('cpu')"><span>CPU Storm</span><br><small>4 workers • 60 seconds</small></button>
+<button class="btn btn2" onclick="injectChaos('network')"><span>Network Saturation</span><br><small>2 workers • 120 seconds</small></button>
+<button class="btn btn3" onclick="injectChaos('memory')"><span>Memory Pressure</span><br><small>1 worker • 300 seconds</small></button>
+</div>
+</div>
+
+<div class="metrics">
+<div class="card">
+<h3>Target Infrastructure</h3>
+<div class="card-value">i-091798990d74dde24</div>
+</div>
+<div class="card">
+<h3>Chaos Orchestrator</h3>
+<div class="card-value">sb-edge-chaos-trigger</div>
+</div>
+<div class="card">
+<h3>Architecture Stack</h3>
+<div class="stack">CloudFront → S3 → Lambda → SSM<br>→ EC2 → ALB → CloudWatch</div>
+</div>
+</div>
+
+<div class="footer">
+Built with Terraform IaC • AWS Production Security<br>
+Senior SRE Portfolio • Chaos Engineering Mastery
+</div>
+</div>
+
+<script>
+let statusInt;
+const particles = document.getElementById('particles');
+
+// Floating particles
+for(let i=0;i<30;i++){
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random()*100+'%';
+  p.style.top = Math.random()*100+'%';
+  p.style.width = (Math.random()*6+2)+'px';
+  p.style.height = p.style.width;
+  p.style.animationDelay = Math.random()*6+'s';
+  p.style.animationDuration = (Math.random()*3+4)+'s';
+  particles.appendChild(p);
+}
+
+async function updateStatus(){
+  try{
+    const res = await fetch('https://chaos.ccarrylab.com/status.json');
+    const data = await res.json();
+    const main = document.getElementById('status-main');
+    const details = document.getElementById('status-details');
+    
+    main.textContent = data.status.toUpperCase();
+    main.className = data.status === 'running' ? 'status-main running' : 
+                    data.status === 'completed' ? 'status-main completed' : 'status-main';
+    
+    details.innerHTML = `Instance: <strong>${data.instance}</strong><br>
+    Last Chaos: <strong>${data.lastChaos || 'None'}</strong><br>
+    <small>${new Date(data.timestamp).toLocaleString()}</small>`;
+  }catch(e){
+    document.getElementById('status-main').textContent = 'UNAVAILABLE';
+  }
+}
+
+async function injectChaos(type){
+  const payloads = {
+    cpu: {type:'cpu',workers:4,seconds:60},
+    network: {type:'network',workers:2,seconds:120},
+    memory: {type:'memory',workers:1,seconds:300}
+  };
+  
+  document.getElementById('status-main').textContent = 'INJECTING...';
+  document.getElementById('status-main').style.color = '#ffaa00';
+  
+  try{
+    await fetch('https://sb-edge-chaos-trigger.lambda-url.us-east-1.on.aws/',{
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payloads[type])
+    });
+  }catch(e){}
+  
+  updateStatus();
+}
+
+updateStatus();
+statusInt = setInterval(updateStatus, 2000);
+</script>
+</body>
+</html>

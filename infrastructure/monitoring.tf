@@ -177,7 +177,7 @@ data "archive_file" "canary_zip" {
   type        = "zip"
   output_path = "${path.module}/canary-files/canary.zip"
   source_dir  = "${path.module}/canary-files"
-  
+
   depends_on = [local_file.canary_script]
 }
 
@@ -190,15 +190,15 @@ resource "aws_s3_object" "canary_zip" {
 }
 
 resource "aws_synthetics_canary" "health_check" {
-  name                 = "sbe-${var.environment}-hc"  # Max 21 chars: sbe-dev-hc = 10 chars
+  name                 = "sbe-${var.environment}-hc" # Max 21 chars: sbe-dev-hc = 10 chars
   artifact_s3_location = "s3://${aws_s3_bucket.logs.bucket}/canary-artifacts/"
   execution_role_arn   = aws_iam_role.canary.arn
   handler              = "index.handler"
-  
+
   s3_bucket  = aws_s3_bucket.logs.bucket
   s3_key     = aws_s3_object.canary_zip.key
   s3_version = aws_s3_object.canary_zip.version_id
-  
+
   runtime_version = "syn-nodejs-puppeteer-9.0"
 
   schedule {

@@ -7,7 +7,8 @@ import { Map,
   Shield, 
   Video, 
   DollarSign,
-  Radio
+  Radio,
+  Sparkles
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'overview', label: 'Overview', icon: Home },
+  { id: 'try', label: 'Try Chaos', icon: Sparkles },
   { id: 'scoreboard', label: 'Scoreboard', icon: Trophy },
   { id: 'cdn', label: 'CDN Metrics', icon: Globe },
   { id: 'chaos', label: 'Chaos Experiments', icon: Zap },
@@ -82,7 +84,7 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
                       currentView === item.id
                         ? 'bg-accent text-accent-foreground shadow-lg'
                         : 'hover:bg-accent/50 text-muted-foreground'
-                    }`}
+                    } ${item.id === 'try' ? 'bg-gradient-to-r from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30' : ''}`}
                   >
                     <item.icon className="w-5 h-5" />
                   </button>
@@ -99,10 +101,15 @@ export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollap
                   currentView === item.id
                     ? 'bg-accent text-accent-foreground shadow-lg'
                     : 'hover:bg-accent/50 text-muted-foreground'
-                }`}
+                } ${item.id === 'try' ? 'bg-gradient-to-r from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 border border-purple-500/30' : ''}`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm font-medium">{item.label}</span>
+                {item.id === 'try' && (
+                  <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-purple-500 text-white font-semibold">
+                    NEW
+                  </span>
+                )}
               </button>
             )
           ))}

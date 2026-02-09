@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><body>
+<h1>Chaos Scoreboard</h1>
+<p>ALB: <span id="alb">100%</span></p>
+<h3>Experiments:</h3>
+<ul><li><b>106455b3-efa4-48c7-898a-cfaa290d891e</b> | NETWORK_FLOOD | 16 workers | <span style="color:red">LIVE</span></li></ul>
+<script>setInterval(()=>{fetch('/metrics/alb').then(r=>r.json()).then(d=>document.getElementById('alb').innerText=d.healthPercentage+'%')},5000)</script>
+</body></html>

@@ -65,19 +65,19 @@ output "cloudwatch_dashboard" {
 output "fis_experiment_templates" {
   description = "FIS Experiment Template IDs"
   value = {
-    ec2_stop       = try(aws_fis_experiment_template.ec2_stop.id, null)
+    ec2_stop        = try(aws_fis_experiment_template.ec2_stop.id, null)
     network_latency = try(aws_fis_experiment_template.network_latency.id, null)
-    cpu_stress     = try(aws_fis_experiment_template.cpu_stress.id, null)
-    alb_blackout   = try(aws_fis_experiment_template.alb_blackout.id, null)
+    cpu_stress      = try(aws_fis_experiment_template.cpu_stress.id, null)
+    alb_blackout    = try(aws_fis_experiment_template.alb_blackout.id, null)
   }
 }
 
 output "demo_commands" {
   description = "Useful commands for testing"
   value = {
-    test_endpoint     = "curl http://${aws_lb.main.dns_name}/health"
-    test_cloudfront   = "curl https://${aws_cloudfront_distribution.main.domain_name}"
-    view_logs         = "aws logs tail /aws/alb/${var.project_name}-${var.environment} --follow"
+    test_endpoint        = "curl http://${aws_lb.main.dns_name}/health"
+    test_cloudfront      = "curl https://${aws_cloudfront_distribution.main.domain_name}"
+    view_logs            = "aws logs tail /aws/alb/${var.project_name}-${var.environment} --follow"
     run_chaos_experiment = "aws fis start-experiment --experiment-template-id <template-id>"
   }
 }

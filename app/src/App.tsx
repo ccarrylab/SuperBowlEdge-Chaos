@@ -9,9 +9,10 @@ import { SecurityMonitor } from './sections/SecurityMonitor'
 import { LiveStream } from './sections/LiveStream'
 import { CostAnalysis } from './sections/CostAnalysis'
 import { Architecture } from './sections/Architecture'
+import { PublicChaosDemo } from './sections/PublicChaosDemo'
 import { Footer } from './components/Footer'
 
-export type ViewType = 'overview' | 'scoreboard' | 'cdn' | 'chaos' | 'infrastructure' | 'security' | 'stream' | 'cost'
+export type ViewType = 'overview' | 'scoreboard' | 'cdn' | 'chaos' | 'infrastructure' | 'security' | 'stream' | 'cost' | 'try'
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('overview')
@@ -21,7 +22,7 @@ function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#/', '') || 'overview'
-      if (['overview', 'scoreboard', 'cdn', 'chaos', 'infrastructure', 'security', 'stream', 'cost'].includes(hash)) {
+      if (['overview', 'scoreboard', 'cdn', 'chaos', 'infrastructure', 'security', 'stream', 'cost', 'try'].includes(hash)) {
         setCurrentView(hash as ViewType)
       }
     }
@@ -59,6 +60,7 @@ function App() {
           {currentView === 'stream' && <LiveStream />}
           {currentView === 'cost' && <CostAnalysis />}
           {currentView === 'architecture' && <Architecture />}
+          {currentView === 'try' && <PublicChaosDemo />}
         </div>
         <Footer />
       </main>

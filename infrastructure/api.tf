@@ -41,7 +41,7 @@ resource "aws_iam_role_policy" "lambda_metrics_policy" {
       },
       {
         Effect   = "Allow"
-        Action   = ["fis:ListExperiments", "fis:GetExperiment", "fis:StartExperiment", "fis:StopExperiment", "fis:ListExperimentTemplates", "fis:GetExperimentTemplate"]
+        Action   = ["fis:ListExperiments", "fis:GetExperiment", "fis:StartExperiment", "fis:StopExperiment", "fis:ListExperimentTemplates", "fis:GetExperimentTemplate", "fis:TagResource"]
         Resource = "*"
       },
       {
@@ -61,6 +61,9 @@ resource "aws_lambda_function" "metrics_api" {
   runtime       = "python3.11"
   timeout       = 30
   memory_size   = 128
+
+  # Optional polish: cap concurrency to prevent abuse / runaway cost
+
   filename         = "${path.module}/lambda/metrics-lambda.zip"
   source_code_hash = filebase64sha256("${path.module}/lambda/metrics-lambda.zip")
 
@@ -84,13 +87,14 @@ resource "aws_lambda_function" "metrics_api" {
   kms_key_arn = aws_kms_key.lambda.arn
 
   # CKV_AWS_115: Skip - account concurrency limit
-  # checkov:skip=CKV_AWS_115:Account has limited unreserved concurrency
+  # checkov:skip=CKV_AWS_115:Reserved concurrency is intentionally capped to 2
 
   environment {
     variables = {
       DISTRIBUTION_ID = aws_cloudfront_distribution.main.id
       ALB_ARN         = aws_lb.main.arn
       ASG_NAME        = aws_autoscaling_group.haproxy.name
+      VISITORS_TABLE  = aws_dynamodb_table.visitors.name
     }
   }
 
@@ -136,12 +140,13 @@ resource "aws_apigatewayv2_route" "metrics_get" {
   route_key = "GET /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.metrics.id}"
 }
+
 resource "aws_apigatewayv2_route" "metrics_post" {
   # checkov:skip=CKV_AWS_309:Public chaos control API endpoint
   authorization_type = "NONE"
-  api_id    = aws_apigatewayv2_api.metrics.id
-  route_key = "POST /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.metrics.id}"
+  api_id             = aws_apigatewayv2_api.metrics.id
+  route_key          = "POST /{proxy+}"
+  target             = "integrations/${aws_apigatewayv2_integration.metrics.id}"
 }
 
 resource "aws_apigatewayv2_stage" "prod" {
@@ -149,9 +154,15 @@ resource "aws_apigatewayv2_stage" "prod" {
   name        = "prod"
   auto_deploy = true
 
+  # Stage throttling (HTTP API v2)
+  default_route_settings {
+    throttling_burst_limit = 5
+    throttling_rate_limit  = 1.0
+  }
+
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway.arn
-    format          = jsonencode({
+    format = jsonencode({
       requestId      = "$context.requestId"
       ip             = "$context.identity.sourceIp"
       requestTime    = "$context.requestTime"

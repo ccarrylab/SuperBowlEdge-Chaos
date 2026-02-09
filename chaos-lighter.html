@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperBowlEdge Chaos Dashboard</title>
+<link rel="stylesheet" href="https://chaos.ccarrylab.com/assets/index-znNhZBVM.css">
+<style>
+body{background:#1a1a25!important;color:#f8fafc;margin:0;padding:0}
+.status-card{position:fixed;top:1.5rem;right:1.5rem;background:#242433;border:1px solid #3d3d52;border-radius:0.625rem;padding:1.5rem;min-width:300px;box-shadow:0 10px 25px -5px rgb(0 0 0 / 0.3);z-index:50}
+.status-card h3{font-size:0.875rem;color:#94a3b8;margin-bottom:0.5rem;font-weight:600}
+.status-value{font-size:1.5rem;font-weight:800;color:#f8fafc}
+.status-running{color:#ef4444;animation:pulse 2s infinite}
+.status-completed{color:#10b981}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.btn-chaos{padding:1.3rem 2rem;font-size:1.125rem;font-weight:700;border-radius:0.5rem;border:none;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgb(0 0 0 / 0.3);text-align:left}
+.btn-chaos:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgb(0 0 0 / 0.4)}
+.btn-chaos:active{transform:scale(0.98)}
+.btn-cpu{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-net{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
+.btn-mem{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.card-bg{background:#242433;border:1px solid #3d3d52;border-radius:0.625rem;box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1)}
+.card-bg:hover{transform:translateY(-4px);box-shadow:0 10px 25px -5px rgb(0 0 0 / 0.3)}
+</style>
+</head>
+<body>
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+
+<div class="status-card">
+<h3>LIVE CHAOS STATUS</h3>
+<div id="status" class="status-value">IDLE</div>
+<div id="details" style="font-size:0.8rem;color:#94a3b8;margin-top:0.75rem;line-height:1.5"></div>
+</div>
+
+<header class="text-center mb-12 pt-8">
+<h1 class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-blue-500 via-emerald-400 to-amber-500 bg-clip-text text-transparent">SuperBowlEdge Chaos Dashboard</h1>
+<p class="text-xl" style="color:#94a3b8">Production Infrastructure Chaos Engineering</p>
+</header>
+
+<section class="mb-16">
+<h2 class="text-3xl font-bold mb-8 text-center" style="color:#3b82f6">Execute Live Chaos Injection</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+<button onclick="chaos('cpu')" class="btn-chaos btn-cpu">
+<div class="text-xl font-bold">CPU Storm</div>
+<div class="text-sm opacity-90 mt-2">4 workers • 60 seconds</div>
+<div class="text-xs opacity-75 mt-1">LIVE Lambda trigger</div>
+</button>
+<button onclick="chaos('network')" class="btn-chaos btn-net">
+<div class="text-xl font-bold">Network Jam</div>
+<div class="text-sm opacity-90 mt-2">2 workers • 120 seconds</div>
+<div class="text-xs opacity-75 mt-1">LIVE Lambda trigger</div>
+</button>
+<button onclick="chaos('memory')" class="btn-chaos btn-mem">
+<div class="text-xl font-bold">Memory Leak</div>
+<div class="text-sm opacity-90 mt-2">1 worker • 300 seconds</div>
+<div class="text-xs opacity-75 mt-1">LIVE Lambda trigger</div>
+</button>
+</div>
+<p class="text-center mt-8 text-lg" style="color:#10b981">Click any button → Lambda fires → EC2 i-091798990d74dde24 → stress-ng chaos</p>
+</section>
+
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="card-bg p-6 text-center transition-all">
+<h3 class="text-sm mb-3 font-semibold uppercase tracking-wide" style="color:#94a3b8">Target Instance</h3>
+<div class="text-2xl font-bold" style="color:#10b981">i-091798990d74dde24</div>
+<div class="text-xs mt-2" style="color:#64748b">Production EC2</div>
+</div>
+<div class="card-bg p-6 text-center transition-all">
+<h3 class="text-sm mb-3 font-semibold uppercase tracking-wide" style="color:#94a3b8">Lambda Function</h3>
+<div class="text-2xl font-bold" style="color:#3b82f6">sb-edge-chaos-trigger</div>
+<div class="text-xs mt-2" style="color:#64748b">AWS Lambda</div>
+</div>
+<div class="card-bg p-6 text-center transition-all">
+<h3 class="text-sm mb-3 font-semibold uppercase tracking-wide" style="color:#94a3b8">Architecture</h3>
+<div class="font-mono text-sm leading-relaxed" style="color:#10b981">CloudFront → S3<br>Lambda → SSM<br>EC2 → ALB</div>
+</div>
+</section>
+
+</div>
+
+<script>
+async function update(){
+  try{
+    const r=await fetch('https://chaos.ccarrylab.com/status.json?'+Date.now());
+    const s=await r.json();
+    const el=document.getElementById('status');
+    el.textContent=s.status.toUpperCase();
+    if(s.status==='running'){
+      el.className='status-value status-running';
+    }else if(s.status==='completed'){
+      el.className='status-value status-completed';
+    }else{
+      el.className='status-value';
+    }
+    document.getElementById('details').innerHTML=`<strong>Instance:</strong> ${s.instance}<br><strong>Last Chaos:</strong> ${s.lastChaos||'None'}<br><strong>Updated:</strong> ${new Date(s.timestamp).toLocaleTimeString()}`;
+  }catch(e){
+    document.getElementById('status').textContent='UNAVAILABLE';
+  }
+}
+
+async function chaos(type){
+  const payloads={
+    cpu:{type:'cpu',workers:4,seconds:60},
+    network:{type:'network',workers:2,seconds:120},
+    memory:{type:'memory',workers:1,seconds:300}
+  };
+  
+  document.getElementById('status').textContent='FIRING...';
+  document.getElementById('status').style.color='#ffaa00';
+  
+  try{
+    const response = await fetch('https://sb-edge-chaos-trigger.lambda-url.us-east-1.on.aws/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payloads[type])
+    });
+    console.log('Lambda Response:', response.status);
+  }catch(e){
+    console.log('Lambda triggered');
+  }
+  
+  setTimeout(update, 500);
+}
+
+update();
+setInterval(update,2500);
+</script>
+</body>
+</html>
