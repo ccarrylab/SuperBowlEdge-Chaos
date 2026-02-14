@@ -25,3 +25,7 @@ chaos-dashboard.zip
 # Python
 __pycache__/
 *.pyc
+
+# Terraform plans
+tfplan
+*.tfplan
