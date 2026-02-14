@@ -21,3 +21,7 @@
 github-trust-policy.json
 *.json # Or specific *.trust*.json
 chaos-dashboard.zip
+
+# Python
+__pycache__/
+*.pyc
