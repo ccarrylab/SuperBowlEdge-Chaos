@@ -346,5 +346,5 @@ spec:
     aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names chaos-asg
 
 ## 🚀 Real-World Deployments
-- TCS/Adobe: 15+ Terraform AWS projects
+- TCS/Adobe: Terraform AWS projects
 - SuperBowlEdge-Chaos: Live at chaos.ccarrylab.com
