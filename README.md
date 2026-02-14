@@ -28,6 +28,48 @@
 
 ---
 
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+### 🎯 Main Dashboard
+*Real-time metrics and chaos engineering control center*
+
+![Chaos Dashboard](docs/screenshots/chaos-dashboard.png)
+
+---
+
+### 🔥 Active Chaos Experiment
+*Live countdown timer and progress tracking during AWS FIS experiment*
+
+![Active Countdown](docs/screenshots/chaos-active-countdown.png)
+
+---
+
+### 🧪 Chaos Experiments
+*Run production chaos tests with one click*
+
+![Chaos Experiments](docs/screenshots/chaos-experiments.png)
+
+---
+
+### 🏗️ Infrastructure Health
+*Real-time AWS infrastructure monitoring*
+
+![Infrastructure Health](docs/screenshots/infrastructure-health.png)
+
+---
+
+### 📊 Experiment History
+*Track all chaos experiments and success rates*
+
+![Experiment History](docs/screenshots/experiment-history.png)
+
+</div>
+
 ## 🔥 Chaos Engineering Features
 
 <table>
