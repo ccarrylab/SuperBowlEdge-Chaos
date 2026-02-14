@@ -9,7 +9,7 @@ import { SecurityMonitor } from './sections/SecurityMonitor'
 import { LiveStream } from './sections/LiveStream'
 import { CostAnalysis } from './sections/CostAnalysis'
 import { Architecture } from './sections/Architecture'
-import { PublicChaosDemo } from './sections/PublicChaosDemo'
+import TryChaos from './sections/TryChaos'
 import { Footer } from './components/Footer'
 
 export type ViewType = 'overview' | 'scoreboard' | 'cdn' | 'chaos' | 'infrastructure' | 'security' | 'stream' | 'cost' | 'try'
@@ -60,7 +60,7 @@ function App() {
           {currentView === 'stream' && <LiveStream />}
           {currentView === 'cost' && <CostAnalysis />}
           {currentView === 'architecture' && <Architecture />}
-          {currentView === 'try' && <PublicChaosDemo />}
+          {currentView === 'try' && <TryChaos />}
         </div>
         <Footer />
       </main>

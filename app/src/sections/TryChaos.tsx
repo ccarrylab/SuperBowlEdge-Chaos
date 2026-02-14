@@ -1,12 +1,13 @@
-// [Previous component code...]
-const triggerExperiment = async (experimentId: string) => {
-  setRunning(experimentId);
-  // ... rest same
-};
+"use client"
 
-// In Button section, add cooldown:
-{results[exp.id] === "success" && (
-  <motion.div className="flex-shrink-0 text-xs text-green-500">
-    ✓ Cooldown 5min
-  </motion.div>
-)}
+export default function TryChaos() {
+  return (
+    <div className="p-8 border rounded-lg">
+      <h1 className="text-2xl font-bold">Chaos Engineering Dashboard</h1>
+      <p className="text-muted-foreground">Component is working!</p>
+      <div className="mt-4 p-4 bg-blue-50 rounded">
+        <p>If you can see this, the component loads correctly.</p>
+      </div>
+    </div>
+  )
+}

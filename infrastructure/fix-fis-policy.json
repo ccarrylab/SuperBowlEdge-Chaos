@@ -1,0 +1,40 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ec2:RebootInstances",
+                "ec2:StopInstances",
+                "ec2:StartInstances",
+                "ec2:TerminateInstances",
+                "ec2:DescribeInstances",
+                "ec2:DescribeTags",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:SetInstanceHealth",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:DeregisterTargets",
+                "elasticloadbalancing:RegisterTargets",
+                "cloudwatch:PutMetricData",
+                "logs:CreateLogGroup",
+                "logs:CreateLogDelivery",
+                "logs:DeleteLogDelivery",
+                "logs:DescribeLogGroups",
+                "logs:DescribeResourcePolicies",
+                "logs:GetLogDelivery",
+                "logs:ListLogDeliveries",
+                "logs:PutResourcePolicy",
+                "logs:UpdateLogDelivery",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "ssm:SendCommand",
+                "ssm:ListCommands",
+                "ssm:ListCommandInvocations",
+                "ssm:GetCommandInvocation",
+                "ssm:DescribeInstanceInformation"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}

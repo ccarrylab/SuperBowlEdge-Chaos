@@ -156,8 +156,8 @@ resource "aws_apigatewayv2_stage" "prod" {
 
   # Stage throttling (HTTP API v2)
   default_route_settings {
-    throttling_burst_limit = 5
-    throttling_rate_limit  = 1.0
+    throttling_burst_limit = 25
+    throttling_rate_limit  = 10
   }
 
   access_log_settings {

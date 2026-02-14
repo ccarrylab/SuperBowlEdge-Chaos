@@ -34,6 +34,7 @@ export function VisitorCounter() {
         setIsLoading(false)
       }
     }
+
     fetchStats()
     const interval = setInterval(fetchStats, 30000)
     return () => clearInterval(interval)

@@ -79,6 +79,12 @@ def lambda_handler(event, context):
     elif path.endswith('/chaos/live'):
         return get_live_chaos_status()
 
+    # Visitor tracking routes
+    elif path.endswith('/metrics/visitor') and method == 'POST':
+        return track_visitor(event)
+    elif path.endswith('/metrics/visitors'):
+        return get_visitor_stats()
+
     return error_response(404, 'Route not found')
 
 
@@ -98,9 +104,16 @@ def start_chaos_experiment(event):
         template_id = EXPERIMENT_TEMPLATES.get(experiment_type)
 
         if not template_id:
+            # Fallback: search for templates by experiment type
             templates = fis.list_experiment_templates()
             for t in templates.get('experimentTemplates', []):
-                if experiment_type in t.get('id', '').lower() or experiment_type in str(t.get('tags', {})).lower():
+                template_id_lower = t.get('id', '').lower()
+                tags = str(t.get('tags', {})).lower()
+                
+                # Match based on experiment type with better logic
+                if (experiment_type.replace('-', '') in template_id_lower.replace('-', '') or
+                    experiment_type in template_id_lower or
+                    experiment_type in tags):
                     template_id = t['id']
                     break
 
@@ -112,7 +125,11 @@ def start_chaos_experiment(event):
 
         response = fis.start_experiment(
             experimentTemplateId=template_id,
-            tags={'StartedBy': 'chaos-dashboard', 'StartTime': datetime.utcnow().isoformat()}
+            tags={
+                'StartedBy': 'chaos-dashboard', 
+                'StartTime': datetime.utcnow().isoformat(),
+                'ExperimentType': experiment_type  # Add this for easier matching
+            }
         )
 
         experiment = response['experiment']
@@ -122,6 +139,7 @@ def start_chaos_experiment(event):
             'experimentId': experiment['id'],
             'status': experiment['state']['status'],
             'templateId': template_id,
+            'experimentType': experiment_type,  # Return the type for easier frontend matching
             'startTime': datetime.utcnow().isoformat()
         })
 
@@ -216,16 +234,40 @@ def get_live_chaos_status():
     """Get current chaos status including running experiments and infrastructure health"""
     try:
         experiments = fis.list_experiments(maxResults=10)
-        running_experiments = [
-            {
+        running_experiments = []
+        
+        for exp in experiments.get('experiments', []):
+            if exp['state']['status'] not in ['running', 'initiating', 'pending']:
+                continue
+                
+            # Get full experiment details to retrieve tags
+            try:
+                exp_detail = fis.get_experiment(id=exp['id'])
+                tags = exp_detail['experiment'].get('tags', {})
+                experiment_type = tags.get('ExperimentType', '')
+            except Exception:
+                experiment_type = ''
+            
+            # Try to infer experiment type from template ID if not in tags
+            template_id = exp.get('experimentTemplateId', '')
+            if not experiment_type:
+                template_lower = template_id.lower()
+                if 'cpu' in template_lower and 'stress' in template_lower:
+                    experiment_type = 'cpu-stress'
+                elif 'ec2' in template_lower and 'stop' in template_lower:
+                    experiment_type = 'ec2-stop'
+                elif 'network' in template_lower and 'latency' in template_lower:
+                    experiment_type = 'network-latency'
+                elif 'blackout' in template_lower or ('alb' in template_lower and 'stop' in template_lower):
+                    experiment_type = 'alb-blackout'
+            
+            running_experiments.append({
                 'id': exp['id'],
                 'status': exp['state']['status'],
-                'templateId': exp.get('experimentTemplateId', ''),
+                'templateId': template_id,
+                'experimentType': experiment_type,  # Add this field
                 'startTime': exp.get('startTime').isoformat() if hasattr(exp.get('startTime'), 'isoformat') else None
-            }
-            for exp in experiments.get('experiments', [])
-            if exp['state']['status'] in ['running', 'initiating', 'pending']
-        ]
+            })
 
         asg = autoscaling.describe_auto_scaling_groups(
             AutoScalingGroupNames=['superbowl-edge-dev-haproxy-asg']
@@ -424,10 +466,25 @@ def get_infrastructure_status():
 def get_chaos_experiments():
     """Get FIS experiments - filters out authorization failures"""
     try:
-        experiments = fis.list_experiments(maxResults=20)
-
+        # Get all experiments by paginating
+        all_experiments = []
+        next_token = None
+        
+        while True:
+            if next_token:
+                experiments = fis.list_experiments(maxResults=100, nextToken=next_token)
+            else:
+                experiments = fis.list_experiments(maxResults=100)
+            
+            all_experiments.extend(experiments.get('experiments', []))
+            next_token = experiments.get('nextToken')
+            
+            if not next_token:
+                break
+        
+        # Filter and process experiments
         experiment_list = []
-        for exp in experiments.get('experiments', []):
+        for exp in all_experiments:
             status = exp['state']['status']
             reason = exp['state'].get('reason', '')
 
@@ -450,16 +507,17 @@ def get_chaos_experiments():
         total_finished = completed + failed
 
         return success_response({
-            'total': len(experiment_list),
+            'total': len(experiment_list),  # Now shows REAL total count
             'completed': completed,
             'failed': failed,
             'running': running,
             'successRate': round((completed / total_finished * 100) if total_finished > 0 else 0, 1),
-            'experiments': experiment_list[:10],
+            'experiments': experiment_list[:10],  # Still only return last 10 for display
             'timestamp': datetime.utcnow().isoformat()
         })
     except Exception as e:
         return error_response(500, str(e))
+
 
 
 def get_metric(namespace, metric_name, distribution_id, start_time, end_time, stat='Sum'):
@@ -568,3 +626,67 @@ def error_response(status_code, message):
         },
         'body': json.dumps({'error': message})
     }
+
+# Simple in-memory visitor tracking (resets when Lambda cold starts)
+visitor_data = {
+    'total': 0,
+    'today': 0,
+    'unique_ips': set()
+}
+
+def track_visitor(event):
+    """Track a visitor POST"""
+    try:
+        visitor_data['total'] += 1
+        visitor_data['today'] += 1
+        
+        # Track unique by IP
+        source_ip = event.get('requestContext', {}).get('http', {}).get('sourceIp', 'unknown')
+        visitor_data['unique_ips'].add(source_ip)
+        
+        return success_response({'tracked': True})
+    except Exception as e:
+        return error_response(500, str(e))
+
+def get_visitor_stats():
+    """Get visitor stats"""
+    try:
+        return success_response({
+            'total': visitor_data['total'],
+            'today': visitor_data['today'],
+            'uniqueToday': len(visitor_data['unique_ips'])
+        })
+    except Exception as e:
+        return error_response(500, str(e))
+
+# Simple in-memory visitor tracking (resets when Lambda cold starts)
+visitor_data = {
+    'total': 0,
+    'today': 0,
+    'unique_ips': set()
+}
+
+def track_visitor(event):
+    """Track a visitor POST"""
+    try:
+        visitor_data['total'] += 1
+        visitor_data['today'] += 1
+        
+        # Track unique by IP
+        source_ip = event.get('requestContext', {}).get('http', {}).get('sourceIp', 'unknown')
+        visitor_data['unique_ips'].add(source_ip)
+        
+        return success_response({'tracked': True})
+    except Exception as e:
+        return error_response(500, str(e))
+
+def get_visitor_stats():
+    """Get visitor stats"""
+    try:
+        return success_response({
+            'total': visitor_data['total'],
+            'today': visitor_data['today'],
+            'uniqueToday': len(visitor_data['unique_ips'])
+        })
+    except Exception as e:
+        return error_response(500, str(e))
