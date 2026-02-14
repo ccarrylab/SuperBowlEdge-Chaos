@@ -138,7 +138,7 @@ resource "aws_cloudfront_distribution" "main" {
   aliases = ["chaos.ccarrylab.com"]
 
   viewer_certificate {
-    acm_certificate_arn            = "arn:aws:acm:us-east-1:089719647189:certificate/238ad34a-b62f-46fc-acaf-6fdc9b1476cd"
+    acm_certificate_arn            = data.aws_acm_certificate.chaos_cert.arn
     ssl_support_method             = "sni-only"
     cloudfront_default_certificate = false
     minimum_protocol_version       = "TLSv1.2_2021"
@@ -286,4 +286,12 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_4xx_errors" {
     DistributionId = aws_cloudfront_distribution.main.id
     Region         = "Global"
   }
+}
+# Fetch ACM certificate for chaos.ccarrylab.com
+data "aws_acm_certificate" "chaos_cert" {
+  domain   = "chaos.ccarrylab.com"
+  statuses = ["ISSUED"]
+  most_recent = true
+  
+  provider = aws.us-east-1  # CloudFront requires certs in us-east-1
 }
