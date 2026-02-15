@@ -12,7 +12,7 @@ export function Footer() {
             <h3 className="text-lg font-bold text-white mb-2">Cohen Carryl</h3>
             <p className="text-sm text-gray-400">Senior DevOps Engineer</p>
             <p className="text-xs text-gray-500 mt-1">
-              7+ years multi-cloud infrastructure
+              Real-time AWS infrastructure with global CDN, automated security, and fault injection
             </p>
             <p className="text-xs text-gray-500">
               11 AWS/GCP/Oracle certifications
