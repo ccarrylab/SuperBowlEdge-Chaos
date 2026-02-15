@@ -29,3 +29,15 @@ __pycache__/
 # Terraform plans
 tfplan
 *.tfplan
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Test files
+*test*.json
+*test*.js
+*.broken
+*.old
+*.backup
