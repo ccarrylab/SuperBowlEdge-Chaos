@@ -189,7 +189,7 @@ export function ChaosExperiments() {
           setExperimentId(running.id)
           
           // Set start time for countdown
-          if (running.startTime && !experimentStartTime) {
+          if (running.startTime && running.startTime !== experimentStartTime) {
             setExperimentStartTime(running.startTime)
           }
           
