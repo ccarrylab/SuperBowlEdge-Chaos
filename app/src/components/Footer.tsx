@@ -126,7 +126,7 @@ export function Footer() {
         </div>
         
         <div className="mt-6 pt-6 border-t border-gray-800">
-          <VisitorCounter />
+          {/* <VisitorCounter /> */}
         </div>
         
         <div className="mt-4 text-center text-sm text-gray-500">
