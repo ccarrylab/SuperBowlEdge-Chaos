@@ -395,7 +395,7 @@ These represent natural progressions of the current architecture — demonstrati
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/cohen-h-carryl-3538b614/)
 [![Portfolio](https://img.shields.io/badge/Portfolio-chaos.ccarrylab.com-orange?style=for-the-badge&logo=amazon-aws)](https://chaos.ccarrylab.com)
 
-**7+ years** multi-cloud infrastructure experience  
+**First DevOps hire at three startups**, building production infrastructure from scratch  
 **11 certifications** across AWS, GCP, Oracle Cloud  
 **Specialization:** Chaos Engineering, SRE, Multi-Cloud Architecture
 
