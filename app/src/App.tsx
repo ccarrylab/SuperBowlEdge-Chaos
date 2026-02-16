@@ -60,13 +60,13 @@ function App() {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-sidebar border-b border-sidebar-border z-40 flex items-center px-4">
         <button
           onClick={toggleMobileSidebar}
-          className="p-2 hover:bg-accent/50 rounded-lg transition-colors"
+          className="p-3 hover:bg-primary/20 active:bg-primary/30 rounded-lg transition-all border-2 border-primary/40 shadow-lg shadow-primary/20"
           aria-label="Toggle menu"
         >
           {isMobileSidebarOpen ? (
-            <X className="w-6 h-6 text-foreground" />
+            <X className="w-7 h-7 text-primary font-bold" />
           ) : (
-            <Menu className="w-6 h-6 text-foreground" />
+            <Menu className="w-7 h-7 text-primary font-bold" />
           )}
         </button>
         
@@ -96,7 +96,7 @@ function App() {
 
       {/* Sidebar - Responsive */}
       <div className={`
-        fixed lg:static
+        fixed
         inset-y-0 left-0
         transform transition-transform duration-300 ease-in-out
         z-50

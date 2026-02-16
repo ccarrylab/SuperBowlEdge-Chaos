@@ -76,14 +76,16 @@ const statusConfig = {
 export function EdgeInfrastructure({ compact = false }: { compact?: boolean }) {
   const [infraData, setInfraData] = useState<InfrastructureData | null>(null)
   const [albData, setALBData] = useState<ALBData | null>(null)
+  const [scalingEvents, setScalingEvents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [openServices, setOpenServices] = useState<string[]>([])
 
   const fetchInfraData = useCallback(async () => {
     try {
-      const [infraResponse, albResponse] = await Promise.all([
+      const [infraResponse, albResponse, scalingResponse] = await Promise.all([
         fetch(`${API_BASE}/metrics/infrastructure`),
-        fetch(`${API_BASE}/metrics/alb`)
+        fetch(`${API_BASE}/metrics/alb`),
+        fetch(`${API_BASE}/metrics/autoscaling`)
       ])
       
       if (infraResponse.ok) {
@@ -94,6 +96,11 @@ export function EdgeInfrastructure({ compact = false }: { compact?: boolean }) {
       if (albResponse.ok) {
         const data = await albResponse.json()
         setALBData(data)
+      }
+
+      if (scalingResponse.ok) {
+        const data = await scalingResponse.json()
+        setScalingEvents(data.events || [])
       }
     } catch (error) {
       console.error('Failed to fetch infrastructure data:', error)
@@ -444,6 +451,50 @@ export function EdgeInfrastructure({ compact = false }: { compact?: boolean }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Auto Scaling Events */}
+      <div className="space-y-4">
+        <h3 className="text-md font-medium flex items-center gap-2">
+          <Activity className="w-5 h-5" />
+          Auto Scaling Activity
+        </h3>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Recent Scaling Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center text-muted-foreground py-4">Loading events...</div>
+            ) : scalingEvents.length === 0 ? (
+              <div className="text-center text-muted-foreground py-4">No recent scaling events</div>
+            ) : (
+              <div className="space-y-3">
+                {scalingEvents.slice(0, 10).map((event, idx) => (
+                  <div key={event.id} className="flex items-start gap-3 p-3 bg-secondary/30 rounded-lg">
+                    <div className={`w-2 h-2 rounded-full mt-2 ${
+                      event.status === 'Successful' ? 'bg-emerald-400' :
+                      event.status === 'InProgress' ? 'bg-amber-400 animate-pulse' :
+                      'bg-red-400'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{event.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{event.cause}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {new Date(event.time).toLocaleString()}
+                        </Badge>
+                        <Badge variant={event.status === 'Successful' ? 'default' : 'secondary'} className="text-xs">
+                          {event.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

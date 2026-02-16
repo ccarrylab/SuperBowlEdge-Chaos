@@ -369,47 +369,57 @@ export function ChaosExperiments() {
               ) : (
                 <Dialog open={showConfirmDialog === template.id} onOpenChange={(open) => setShowConfirmDialog(open ? template.id : null)}>
                   <DialogTrigger asChild>
-                    <Button size="sm" disabled={isAnyRunning || isStarting}>
+                    <Button 
+                      size="default"
+                      className="md:size-sm bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-emerald-500/30 border-0 min-w-[100px]"
+                      disabled={isAnyRunning || isStarting}
+                    >
                       {isStarting && showConfirmDialog === template.id ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       ) : (
-                        <Play className="w-4 h-4 mr-1" />
+                        <Play className="w-5 h-5 mr-2" />
                       )}
-                      Run
+                      <span className="text-base md:text-sm">Run</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="sm:max-w-[500px] max-w-[95vw]">
                     <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-red-500" />
+                      <DialogTitle className="flex items-center gap-2 text-lg">
+                        <Flame className="w-6 h-6 text-red-500 animate-pulse" />
                         Run Chaos Experiment
                       </DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription className="text-base">
                         You are about to run <strong>{template.name}</strong> using AWS Fault Injection Simulator (FIS).
                         This will affect your <strong>live production infrastructure</strong>.
                       </DialogDescription>
                     </DialogHeader>
-                    <Alert className={impactColors[template.impact]}>
-                      <AlertTriangle className="w-4 h-4" />
-                      <AlertDescription>
-                        <strong>{template.impact.toUpperCase()} IMPACT</strong> - {template.description}
-                        <br />
-                        <span className="text-xs mt-1 block">Duration: {template.duration}</span>
+                    <Alert className={`${impactColors[template.impact]} border-2`}>
+                      <AlertTriangle className="w-5 h-5" />
+                      <AlertDescription className="text-sm">
+                        <strong className="text-base">{template.impact.toUpperCase()} IMPACT</strong>
+                        <p className="mt-1">{template.description}</p>
+                        <span className="text-xs mt-2 block font-semibold">Duration: {template.duration}</span>
                       </AlertDescription>
                     </Alert>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowConfirmDialog(null)}>
+                    <DialogFooter className="flex-col sm:flex-row gap-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowConfirmDialog(null)}
+                        className="w-full sm:w-auto order-2 sm:order-1"
+                      >
                         Cancel
                       </Button>
                       <Button 
-                        variant="destructive" 
+                        variant="destructive"
+                        size="lg"
                         onClick={() => startExperiment(template.id)}
                         disabled={isStarting}
+                        className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-500/50 font-bold text-base order-1 sm:order-2"
                       >
                         {isStarting ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         ) : (
-                          <Flame className="w-4 h-4 mr-2" />
+                          <Flame className="w-5 h-5 mr-2 animate-pulse" />
                         )}
                         Start Chaos
                       </Button>

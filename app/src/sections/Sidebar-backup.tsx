@@ -9,6 +9,7 @@ import { Map,
   DollarSign,
   Radio,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ViewType } from '@/App'
 
@@ -31,16 +32,16 @@ const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'architecture', label: 'Architecture', icon: Map }
 ]
 
-export function Sidebar({ currentView, onViewChange, isCollapsed }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, isCollapsed, onToggleCollapse }: SidebarProps) {
   return (
     <TooltipProvider delayDuration={0}>
       <aside
-        className={`h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 ${
+        className={`h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ${
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
-        {/* Header - Hidden on mobile (shown in App.tsx mobile header instead) */}
-        <div className="hidden lg:flex h-16 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
+        {/* Header - Hidden on mobile (shown in mobile header instead) */}
+        <div className="hidden lg:flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
           {!isCollapsed && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-amber-500 to-red-500 flex items-center justify-center animate-pulse-glow">
@@ -59,9 +60,9 @@ export function Sidebar({ currentView, onViewChange, isCollapsed }: SidebarProps
           )}
         </div>
 
-        {/* Live Indicator - Desktop only */}
+        {/* Live Indicator - Hidden on mobile */}
         {!isCollapsed && (
-          <div className="hidden lg:flex justify-center py-2 border-b border-sidebar-border flex-shrink-0">
+          <div className="hidden lg:flex justify-center py-2 border-b border-sidebar-border">
             <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
               <Radio className="w-3 h-3 text-green-500 animate-pulse" />
               <span className="text-xs font-medium text-green-500">LIVE</span>
@@ -70,10 +71,10 @@ export function Sidebar({ currentView, onViewChange, isCollapsed }: SidebarProps
         )}
 
         {/* Mobile Top Spacing */}
-        <div className="lg:hidden h-4 flex-shrink-0"></div>
+        <div className="lg:hidden h-4"></div>
 
-        {/* Navigation - Scrollable area */}
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="p-2 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
           {navItems.map((item) => (
             isCollapsed ? (
               <Tooltip key={item.id}>
@@ -97,25 +98,25 @@ export function Sidebar({ currentView, onViewChange, isCollapsed }: SidebarProps
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`w-full p-4 rounded-lg transition-all flex items-center gap-4 min-h-[52px] ${
+                className={`w-full p-3 rounded-lg transition-all flex items-center gap-3 min-h-[44px] ${
                   currentView === item.id
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30 font-bold'
-                    : 'hover:bg-accent/50 text-foreground font-semibold hover:text-primary'
+                    ? 'bg-accent text-accent-foreground shadow-lg'
+                    : 'hover:bg-accent/50 text-muted-foreground'
                 }`}
               >
-                <item.icon className="w-6 h-6 flex-shrink-0" />
-                <span className="text-base">{item.label}</span>
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{item.label}</span>
               </button>
             )
           ))}
         </nav>
 
-        {/* Bottom Section - Only show profile on mobile */}
-        <div className="p-4 border-t border-sidebar-border bg-sidebar flex-shrink-0">
+        {/* Bottom Section */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sidebar-border bg-sidebar">
           {!isCollapsed ? (
             <div className="space-y-3">
-              {/* Profile Card - Only on mobile */}
-              <div className="lg:hidden bg-accent/30 rounded-lg p-3 space-y-2">
+              {/* Profile Card - Added for mobile */}
+              <div className="bg-accent/30 rounded-lg p-3 space-y-2">
                 <div className="text-sm font-semibold text-foreground">Cohen Carryl</div>
                 <div className="text-xs text-muted-foreground">Senior DevOps Engineer</div>
                 <a
@@ -131,7 +132,6 @@ export function Sidebar({ currentView, onViewChange, isCollapsed }: SidebarProps
                 </a>
               </div>
               
-              {/* Status - Always show */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <div className="w-2 h-2 rounded-full status-online animate-pulse" />
                 <span>All Systems Operational</span>

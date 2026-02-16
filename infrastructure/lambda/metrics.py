@@ -63,6 +63,8 @@ def lambda_handler(event, context):
         return get_alb_metrics()
     elif path.endswith('/metrics/infrastructure'):
         return get_infrastructure_status()
+    elif path.endswith('/metrics/autoscaling'):
+        return get_autoscaling_events()
     elif path.endswith('/chaos/experiments'):
         return get_chaos_experiments()
 
@@ -457,6 +459,36 @@ def get_infrastructure_status():
                 'maxSize': asg_data.get('MaxSize'),
                 'instances': instance_details
             },
+            'timestamp': datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+def get_autoscaling_events():
+    """Get recent Auto Scaling activities"""
+    try:
+        response = autoscaling.describe_scaling_activities(
+            AutoScalingGroupName='superbowl-edge-dev-haproxy-asg',
+            MaxRecords=20
+        )
+        
+        events = []
+        for activity in response.get('Activities', []):
+            events.append({
+                'id': activity['ActivityId'],
+                'time': activity['StartTime'].isoformat() if hasattr(activity['StartTime'], 'isoformat') else str(activity['StartTime']),
+                'endTime': activity.get('EndTime').isoformat() if activity.get('EndTime') and hasattr(activity.get('EndTime'), 'isoformat') else None,
+                'description': activity.get('Description', ''),
+                'cause': activity.get('Cause', ''),
+                'status': activity.get('StatusCode', ''),
+                'statusMessage': activity.get('StatusMessage', ''),
+                'progress': activity.get('Progress', 0)
+            })
+        
+        return success_response({
+            'events': events,
+            'count': len(events),
             'timestamp': datetime.utcnow().isoformat()
         })
     except Exception as e:

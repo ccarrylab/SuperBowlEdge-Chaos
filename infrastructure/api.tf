@@ -36,7 +36,7 @@ resource "aws_iam_role_policy" "lambda_metrics_policy" {
       },
       {
         Effect   = "Allow"
-        Action   = ["autoscaling:DescribeAutoScalingGroups"]
+        Action   = ["autoscaling:DescribeAutoScalingGroups", "autoscaling:DescribeScalingActivities"]
         Resource = "*"
       },
       {
