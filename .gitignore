@@ -41,3 +41,4 @@ tfplan
 *.broken
 *.old
 *.backup
+*.zip
