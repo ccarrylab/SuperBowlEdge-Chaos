@@ -129,6 +129,43 @@ Navigate to [Edge Infrastructure](https://chaos.ccarrylab.com/#/infrastructure) 
 
 ---
 
+## 📸 Platform Screenshots
+
+<details>
+<summary><b>🖼️ Click to view platform screenshots</b></summary>
+
+### Chaos Engineering Dashboard
+![Chaos Dashboard](docs/screenshots/chaos-dashboard.png)
+*Main chaos engineering interface with experiment controls and real-time status*
+
+### Active Chaos Experiment
+![Chaos Active](docs/screenshots/chaos-active-countdown.png)
+*Live countdown timer during chaos experiment execution - CPU stress test in progress*
+
+### Chaos Experiments Library
+![Chaos Experiments](docs/screenshots/chaos-experiments.png)
+*Full experiment library: CPU stress, network latency, instance termination, ALB blackout*
+
+### Infrastructure Health Monitoring
+![Infrastructure Health](docs/screenshots/infrastructure-health.png)
+*Multi-AZ infrastructure dashboard with real-time HAProxy instance metrics*
+
+### Experiment History & Analytics
+![Experiment History](docs/screenshots/experiment-history.png)
+*Complete audit trail of 68+ chaos experiments with success rates and timestamps*
+
+### Auto Scaling Activity Feed
+![Auto Scaling](docs/screenshots/auto-scaling-activity.png)
+*Real-time infrastructure healing events proving <2s recovery times*
+
+### Mobile Responsive Design
+![Mobile View](docs/screenshots/F12-Device.png)
+*Full platform functionality on mobile devices - chaos engineering from your phone*
+
+</details>
+
+---
+
 ## 🚀 Features
 
 <table>
@@ -325,7 +362,7 @@ superbowl-edge-chaos/
 │   └── security.yml             # Security scanning
 └── 📚 docs/                     # Documentation
     ├── architecture.png         # Architecture diagram
-    ├── screenshots/             # Platform screenshots
+    ├── screenshots/             # Platform screenshots (8 images)
     ├── SECURITY.md
     └── SECURITY_IMPROVEMENTS.md
 ```
