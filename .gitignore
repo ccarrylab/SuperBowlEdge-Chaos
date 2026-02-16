@@ -42,3 +42,23 @@ tfplan
 *.old
 *.backup
 *.zip
+
+# Build artifacts and archives
+*.zip
+*.tar.gz
+
+# Dependencies (should only be in app/)
+/node_modules/
+
+# Backend (not used)
+/backend/
+
+# Build artifacts and archives
+*.zip
+*.tar.gz
+
+# Dependencies (should only be in app/)
+/node_modules/
+
+# Backend (not used)
+/backend/
