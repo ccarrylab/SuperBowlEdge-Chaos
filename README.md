@@ -131,9 +131,6 @@ Navigate to [Edge Infrastructure](https://chaos.ccarrylab.com/#/infrastructure) 
 
 ## 📸 Platform Screenshots
 
-<details>
-<summary><b>🖼️ Click to view platform screenshots</b></summary>
-
 ### Chaos Engineering Dashboard
 ![Chaos Dashboard](docs/screenshots/chaos-dashboard.png)
 *Main chaos engineering interface with experiment controls and real-time status*
@@ -154,15 +151,9 @@ Navigate to [Edge Infrastructure](https://chaos.ccarrylab.com/#/infrastructure) 
 ![Experiment History](docs/screenshots/experiment-history.png)
 *Complete audit trail of 68+ chaos experiments with success rates and timestamps*
 
-### Auto Scaling Activity Feed
-![Auto Scaling](docs/screenshots/auto-scaling-activity.png)
-*Real-time infrastructure healing events proving <2s recovery times*
-
 ### Mobile Responsive Design
 ![Mobile View](docs/screenshots/F12-Device.png)
 *Full platform functionality on mobile devices - chaos engineering from your phone*
-
-</details>
 
 ---
 
