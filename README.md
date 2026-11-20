@@ -1,5 +1,10 @@
 🏆 SuperBowl Edge - Chaos Engineering Platform
 
+> [!WARNING]
+> **Live site offline.** The demo at chaos.ccarrylab.com has been taken down and is not expected to return. The code, architecture, and results below are kept for reference.
+
+---
+
 Production-Grade Infrastructure at Super Bowl Scale
 
 [!Security Checks](https://github.com/ccarrylab/SuperBowlEdge-Chaos/actions)
