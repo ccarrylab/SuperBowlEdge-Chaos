@@ -465,5 +465,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ⭐ Star this repo if you found it helpful!
 
 Built with ❤️ using AWS, Terraform, and React
-
-> **Notice:** The site at chaos.ccarrylab.com has been taken down. It is no longer running and is not expected to return.
