@@ -53,6 +53,9 @@ skip-check:
   # === Terraform Module Skips ===
   - CKV_TF_1     # Module hash: Using semantic versioning
 
+  # === Data Source Skips ===
+  - CKV_AWS_394  # aws_availability_zones: site torn down, zone set not pinned
+
 framework:
   - terraform
 
